@@ -1,18 +1,18 @@
 #include "Soda.h"
 #include <iostream>
 
-using namespace SODA;
+using namespace Soda;
 
 int main()
 {
-	COMPILER compiler;
+	Compiler compiler;
 
-	compiler.AddFile("C:\\Projects\\Soda\\Soda\\test.soda");
-	compiler.Tokenize();
-	auto mod = ParseTokens(compiler, compiler.GetTokens());
-	compiler.ReportDiagnostics(std::cerr);
+	compiler.addFile("C:\\Projects\\Soda\\Soda\\test.soda");
+	compiler.tokenize();
+	auto mod = parseTokens(compiler, compiler.getTokens());
+	compiler.reportDiagnostics(std::cerr);
 
-	//for (auto &tok : compiler.GetTokens())
+	//for (auto &tok : compiler.getTokens())
 	//	std::cout << tok << std::endl;
 
 	std::cout << "=================================\nPress enter to exit" << std::endl;

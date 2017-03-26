@@ -7,58 +7,58 @@
 #include <string>
 #include <vector>
 
-namespace SODA
+namespace Soda
 {
 
-	struct DIAGNOSTIC_POSITION
+	struct DiagnosticPosition
 	{
-		size_t Position, Line, Column;
-		DIAGNOSTIC_POSITION(size_t position = 0,
+		size_t position, line, column;
+		DiagnosticPosition(size_t position = 0,
 			                size_t line = size_t(-1), size_t column = size_t(-1))
-			: Position(position), Line(line), Column(column)
+			: position(position), line(line), column(column)
 		{
 		}
-		bool IsResolved() const
+		bool isResolved() const
 		{
-			return (Line != size_t(-1) && Column != size_t(-1));
+			return (line != size_t(-1) && column != size_t(-1));
 		}
-		void ResolvePosition(SOURCE_FILE &sourceFile)
+		void resolvePosition(SourceFile &sourceFile)
 		{
-			sourceFile.GetPosition(Position, Line, Column);
+			sourceFile.getPosition(position, line, column);
 		}
 	};
 
-	struct DIAGNOSTIC_LOCATION
+	struct DiagnosticLocation
 	{
-		SOURCE_FILE &File;
-		DIAGNOSTIC_POSITION Start;
-		DIAGNOSTIC_POSITION End;
-		DIAGNOSTIC_LOCATION(SOURCE_FILE &file, size_t start = 0, size_t end = 0)
-			: File(file), Start(start), End(end) {}
-		bool IsResolved() const
+		SourceFile &file;
+		DiagnosticPosition start;
+		DiagnosticPosition end;
+		DiagnosticLocation(SourceFile &file, size_t start = 0, size_t end = 0)
+			: file(file), start(start), end(end) {}
+		bool isResolved() const
 		{
-			return (Start.IsResolved() && End.IsResolved());
+			return (start.isResolved() && end.isResolved());
 		}
-		void ResolvePosition()
+		void resolvePosition()
 		{
-			Start.ResolvePosition(File);
-			End.ResolvePosition(File);
+			start.resolvePosition(file);
+			end.resolvePosition(file);
 		}
-		void GetLine(std::string &line) const
+		void getLine(std::string &line) const
 		{
-			auto lineStartOffset = Start.Position;
-			while (File[lineStartOffset--] != '\n') { ; }
+			auto lineStartOffset = start.position;
+			while (file[lineStartOffset--] != '\n') { ; }
 			auto lineEndOffset = lineStartOffset;
-			while (File[lineEndOffset++] != '\n') { ; }
+			while (file[lineEndOffset++] != '\n') { ; }
 			auto lineLength = lineEndOffset - lineStartOffset;
 			line.clear();
 			line.reserve(lineLength);
 			for (auto i = lineStartOffset; i < lineEndOffset; i++)
-				line += static_cast<char>(File[i]);
+				line += static_cast<char>(file[i]);
 		}
 	};
 
-	enum DIAGNOSTIC_CATEGORY
+	enum DiagnosticCategory
 	{
 		DC_ERROR,
 		DC_WARNING,
@@ -66,104 +66,104 @@ namespace SODA
 		DC_DEBUG,
 	};
 
-	class DIAGNOSTIC
+	class Diagnostic
 	{
 	public:
-		DIAGNOSTIC_CATEGORY Category;
-		DIAGNOSTIC_LOCATION Location;
-		std::string Message;
+		DiagnosticCategory category;
+		DiagnosticLocation location;
+		std::string message;
 
-		DIAGNOSTIC(DIAGNOSTIC_CATEGORY cat, DIAGNOSTIC_LOCATION loc, std::string msg)
-			: Category(cat), Location(std::move(loc)), Message(std::move(msg)) {}
+		Diagnostic(DiagnosticCategory cat, DiagnosticLocation loc, std::string msg)
+			: category(cat), location(std::move(loc)), message(std::move(msg)) {}
 
-		void GetLine(std::string &line) const
+		void getLine(std::string &line) const
 		{
-			Location.GetLine(line);
+			location.getLine(line);
 		}
 
-		friend std::ostream &operator<<(std::ostream &os, const DIAGNOSTIC &diag)
+		friend std::ostream &operator<<(std::ostream &os, const Diagnostic &diag)
 		{
 			std::string cat;
-			switch (diag.Category)
+			switch (diag.category)
 			{
 			case DC_ERROR:   cat = "error"; break;
 			case DC_WARNING: cat = "warning"; break;
 			case DC_NOTE:    cat = "note"; break;
 			case DC_DEBUG:   cat = "debug"; break;
 			}
-			os << diag.Location.File.GetFileName() << ":" 
-				<< diag.Location.Start.Line << ":" << diag.Location.Start.Column << ": "
-				<< cat << ": " << diag.Message << '\n';
+			os << diag.location.file.getFileName() << ":" 
+				<< diag.location.start.line << ":" << diag.location.start.column << ": "
+				<< cat << ": " << diag.message << '\n';
 			return os;
 		}
 
-		void ResolvePosition()
+		void resolvePosition()
 		{
-			if (!Location.IsResolved())
-				Location.ResolvePosition();
+			if (!location.isResolved())
+				location.resolvePosition();
 		}
 
 	private:
 	};
 
-	typedef std::vector<DIAGNOSTIC> DIAGNOSTIC_LIST;
+	typedef std::vector<Diagnostic> DiagnosticList;
 
-	class LOGGER
+	class Logger
 	{
 	public:
 
 		template< class... Args >
-		void Log(DIAGNOSTIC_CATEGORY cat, DIAGNOSTIC_LOCATION loc, Args&&... args)
+		void log(DiagnosticCategory cat, DiagnosticLocation loc, Args&&... args)
 		{
 			std::stringstream ss;
-			Format(ss, std::forward<Args>(args)...);
-			DIAGNOSTIC diag(cat, std::move(loc), ss.str());
-			diag.ResolvePosition();
-			Diagnostics.push_back(std::move(diag));
+			format(ss, std::forward<Args>(args)...);
+			Diagnostic diag(cat, std::move(loc), ss.str());
+			diag.resolvePosition();
+			diagnostics.push_back(std::move(diag));
 		}
 
 		template< class... Args >
-		void Log(DIAGNOSTIC_CATEGORY cat, TOKEN &token, Args&&... args)
+		void log(DiagnosticCategory cat, Token &token, Args&&... args)
 		{
-			Log(cat, DIAGNOSTIC_LOCATION(token.File, token.Start, token.End), std::forward<Args>(args)...);
+			log(cat, DiagnosticLocation(token.file, token.start, token.end), std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Error(Args&&... args)
+		void error(Args&&... args)
 		{
-			Log(DC_ERROR, std::forward<Args>(args)...);
+			log(DC_ERROR, std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Warning(Args&&... args)
+		void warning(Args&&... args)
 		{
-			Log(DC_WARNING, std::forward<Args>(args)...);
+			log(DC_WARNING, std::forward<Args>(args)...);
 		}
 		
 		template< class... Args >
-		void Note(Args&&... args)
+		void note(Args&&... args)
 		{
-			Log(DC_NOTE, std::forward<Args>(args)...);
+			log(DC_NOTE, std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Debug(Args&&... args)
+		void debug(Args&&... args)
 		{
-			Log(DC_DEBUG, std::forward<Args>(args)...);
+			log(DC_DEBUG, std::forward<Args>(args)...);
 		}
 
-		bool HaveMessages() const 
+		bool haveMessages() const 
 		{ 
-			return !Diagnostics.empty(); 
+			return !diagnostics.empty(); 
 		}
 
-		bool OutputDiagnostics(std::ostream &os, size_t limit = size_t(-1))
+		bool outputDiagnostics(std::ostream &os, size_t limit = size_t(-1))
 		{
 			auto errors = 0u;
 			auto cnt = 0u;
-			for (auto &diag : Diagnostics)
+			for (auto &diag : diagnostics)
 			{
-				if (diag.Category == DC_ERROR)
+				if (diag.category == DC_ERROR)
 					errors++;
 				os << diag << '\n';
 				cnt++;
@@ -174,9 +174,9 @@ namespace SODA
 		}
 
 	private:
-		DIAGNOSTIC_LIST Diagnostics;
+		DiagnosticList diagnostics;
 		
-		void Format(std::ostream &os, const char *s)
+		void format(std::ostream &os, const char *s)
 		{
 			while (*s)
 			{
@@ -192,7 +192,7 @@ namespace SODA
 		}
 
 		template< class T, class... Args >
-		void Format(std::ostream &os, const char *s, const T &value, Args&&... args)
+		void format(std::ostream &os, const char *s, const T &value, Args&&... args)
 		{
 			while (*s)
 			{
@@ -204,7 +204,7 @@ namespace SODA
 					{
 						os << value;
 						++s;
-						Format(os, s, std::forward<Args>(args)...);
+						format(os, s, std::forward<Args>(args)...);
 						return;
 					}
 				}
@@ -213,4 +213,4 @@ namespace SODA
 		}
 	};
 
-} // namespade SODA
+} // namespade Soda

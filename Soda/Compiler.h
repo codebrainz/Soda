@@ -7,79 +7,79 @@
 #include <iostream>
 #include <vector>
 
-namespace SODA
+namespace Soda
 {
 
-	class COMPILER
+	class Compiler
 	{
 	public:
 
-		void AddFile(const std::string &fn)
+		void addFile(const std::string &fn)
 		{
-			SourceFiles.emplace_back(*this, fn);
+			sourceFiles.emplace_back(*this, fn);
 		}
 
-		void Tokenize()
+		void tokenize()
 		{
-			Tokens.clear();
-			for (auto &sourceFile : SourceFiles)
-				sourceFile.Tokenize(Tokens);
+			tokens.clear();
+			for (auto &sourceFile : sourceFiles)
+				sourceFile.tokenize(tokens);
 		}
 
-		const TOKEN_LIST &GetTokens() const
+		const TokenList &getTokens() const
 		{
-			return Tokens;
+			return tokens;
 		}
 
-		TOKEN_LIST &GetTokens()
+		TokenList &getTokens()
 		{
-			return Tokens;
+			return tokens;
 		}
 
-		SYMBOL_TABLE &GetGlobalScope() 
+		SymbolTable &getGlobalScope() 
 		{ 
-			return GlobalScope; 
+			return globalScope; 
 		}
 
-		const SYMBOL_TABLE &GetGlobalScope() const 
+		const SymbolTable &getGlobalScope() const 
 		{ 
-			return GlobalScope; 
+			return globalScope; 
 		}
 
 		template< class... Args >
-		void Error(Args&&... args)
+		void error(Args&&... args)
 		{
-			Logger.Error(std::forward<Args>(args)...);
+			logger.error(std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Warning(Args&&... args)
+		void warning(Args&&... args)
 		{
-			Logger.Warning(std::forward<Args>(args)...);
+			logger.warning(std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Note(Args&&... args)
+		void note(Args&&... args)
 		{
-			Logger.Note(std::forward<Args>(args)...);
+			logger.note(std::forward<Args>(args)...);
 		}
 
 		template< class... Args >
-		void Debug(Args&&... args)
+		void debug(Args&&... args)
 		{
-			Logger.Debug(std::forward<Args>(args)...);
+			logger.debug(std::forward<Args>(args)...);
 		}
 
-		bool ReportDiagnostics(std::ostream &os = std::cerr, size_t limit = size_t(-1))
+		bool reportDiagnostics(std::ostream &os = std::cerr, size_t limit = size_t(-1))
 		{
-			return Logger.OutputDiagnostics(os, limit);
+			return logger.outputDiagnostics(os, limit);
 		}
 
 	private:
-		SOURCE_FILE_LIST SourceFiles;
-		TOKEN_LIST Tokens;
-		SYMBOL_TABLE GlobalScope;
-		LOGGER Logger;
+		SourceFileList sourceFiles;
+		TokenList tokens;
+		SymbolTable globalScope;
+		Logger logger;
 	};
 
-} // namespace SODA
+} // namespace Soda

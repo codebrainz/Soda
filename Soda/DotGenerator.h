@@ -4,9 +4,9 @@
 #include <memory>
 #include <ostream>
 
-namespace SODA
+namespace Soda
 {
 
-	void generateDot(std::unique_ptr<AST_MODULE> &m, std::ostream &os);
+	void generateDot(std::unique_ptr<AstModule> &m, std::ostream &os);
 
-} // namespace SODA
+} // namespace Soda

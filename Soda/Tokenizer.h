@@ -4,13 +4,13 @@
 #include <string>
 #include <vector>
 
-namespace SODA
+namespace Soda
 {
 
-	class COMPILER;
-	class SOURCE_FILE;
+	class Compiler;
+	class SourceFile;
 
-	enum TOKEN_KIND
+	enum TokenKind
 	{
 		TK_ERROR = -1,
 		TK_EOF = 0,
@@ -86,39 +86,39 @@ namespace SODA
 		TK_IXOR,
 	};
 
-	const char *TokenKindName(TOKEN_KIND kind);
+	const char *tokenKindName(TokenKind kind);
 
-	struct TOKEN
+	struct Token
 	{
-		TOKEN_KIND Kind;
-		SOURCE_FILE &File;
-		size_t Start, End;
+		TokenKind kind;
+		SourceFile &file;
+		size_t start, end;
 
-		TOKEN(SOURCE_FILE &file, TOKEN_KIND kind = TK_EOF, size_t start = 0, size_t end = 0)
-			: Kind(kind), File(file), Start(start), End(end) {}
+		Token(SourceFile &file, TokenKind kind = TK_EOF, size_t start = 0, size_t end = 0)
+			: kind(kind), file(file), start(start), end(end) {}
 
-		void GetText(std::string &text) const;
+		void getText(std::string &text) const;
 
-		const char *GetKindName() const 
+		const char *getKindName() const 
 		{ 
-			return TokenKindName(Kind); 
+			return tokenKindName(kind); 
 		}
 
-		friend std::ostream &operator<<(std::ostream &os, const TOKEN &token)
+		friend std::ostream &operator<<(std::ostream &os, const Token &token)
 		{
 			std::string tokenText;
-			token.GetText(tokenText);
+			token.getText(tokenText);
 			os << "(TOKEN " 
-				<< token.GetKindName() << " '" 
+				<< token.getKindName() << " '" 
 				<< tokenText << "' " 
-				<< token.Start << " " 
-				<< token.End << ")";
+				<< token.start << " " 
+				<< token.end << ")";
 			return os;
 		}
 	};
 
-	typedef std::vector<TOKEN> TOKEN_LIST;
+	typedef std::vector<Token> TokenList;
 
-	bool TokenizeFile(COMPILER &compiler, SOURCE_FILE &sourceFile, TOKEN_LIST &tokenList);
+	bool tokenizeFile(Compiler &compiler, SourceFile &sourceFile, TokenList &tokenList);
 
 }

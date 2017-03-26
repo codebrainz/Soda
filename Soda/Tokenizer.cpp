@@ -3,40 +3,40 @@
 #include "SourceFile.h"
 #include <iostream>
 
-namespace SODA
+namespace Soda
 {
-	struct LEXER
+	struct Lexer
 	{
-		COMPILER &Compiler;
-		SOURCE_FILE &SourceFile;
-		int Char;
-		size_t Offset;
-		size_t FileSize;
+		Compiler &compiler;
+		SourceFile &sourceFile;
+		int chr;
+		size_t offset;
+		size_t fileSize;
 
-		LEXER(COMPILER &compiler, SOURCE_FILE &sourceFile) 
-			: Compiler(compiler),
-			  SourceFile(sourceFile), 
-			  Char(' '), 
-			  Offset(0), 
-			  FileSize(sourceFile.GetSize()) {}
+		Lexer(Compiler &compiler, SourceFile &sourceFile) 
+			: compiler(compiler),
+			  sourceFile(sourceFile), 
+			  chr(' '), 
+			  offset(0), 
+			  fileSize(sourceFile.getSize()) {}
 
-		int NextChar() 
+		int nextChar() 
 		{
-			if (Offset >= FileSize)
-				return (Char = EOF);
-			return (Char = SourceFile[Offset++]);
+			if (offset >= fileSize)
+				return (chr = EOF);
+			return (chr = sourceFile[offset++]);
 		}
 
-		int PeekChar()
+		int peekChar()
 		{
-			if (Offset >= FileSize)
+			if (offset >= fileSize)
 				return EOF;
-			return SourceFile[Offset];
+			return sourceFile[offset];
 		}
 
-		bool IsSpace() const
+		bool isSpace() const
 		{
-			switch (Char)
+			switch (chr)
 			{
 			case ' ':
 			case '\t':
@@ -50,55 +50,55 @@ namespace SODA
 			}
 		}
 
-		bool IsAlpha() const
+		bool isAlpha() const
 		{
-			return ((Char >= 'a' && Char <= 'z') || (Char >= 'A' && Char <= 'Z'));
+			return ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z'));
 		}
 
-		bool IsDigit() const
+		bool isDigit() const
 		{
-			return (Char >= '0' && Char <= '9');
+			return (chr >= '0' && chr <= '9');
 		}
 
-		bool IsAlnum() const
+		bool isAlnum() const
 		{
-			return (IsAlpha() || IsDigit());
+			return (isAlpha() || isDigit());
 		}
 
-		bool IsBinary() const
+		bool isBinary() const
 		{
-			return (Char == '1' || Char == '0');
+			return (chr == '1' || chr == '0');
 		}
 
-		bool IsDecimal() const
+		bool isDecimal() const
 		{
-			return IsDigit();
+			return isDigit();
 		}
 
-		bool IsHexidecimal() const
+		bool isHexidecimal() const
 		{
-			return ((Char >= 'a' && Char <= 'f') || (Char >= 'A' && Char <= 'F') || IsDigit());
+			return ((chr >= 'a' && chr <= 'f') || (chr >= 'A' && chr <= 'F') || isDigit());
 		}
 
-		bool IsOctal() const
+		bool isOctal() const
 		{
-			return (Char >= '0' && Char <= '7');
+			return (chr >= '0' && chr <= '7');
 		}
 
-		void SetIdKwdKind(TOKEN &token);
-		TOKEN_KIND NextToken_(TOKEN &token);
-		TOKEN_KIND NextToken(TOKEN &token)
+		void setIdKwdKind(Token &token);
+		TokenKind nextToken_(Token &token);
+		TokenKind nextToken(Token &token)
 		{
-			auto kind = NextToken_(token);
-			token.Start--;
-			token.End--;
+			auto kind = nextToken_(token);
+			token.start--;
+			token.end--;
 			return kind;
 		}
 	};
 
-	void LEXER::SetIdKwdKind(TOKEN & token)
+	void Lexer::setIdKwdKind(Token & token)
 	{
-		static const std::pair<std::string, TOKEN_KIND> kwds[] = {
+		static const std::pair<std::string, TokenKind> kwds[] = {
 			{ "nil", TK_NIL },
 			{ "true", TK_TRUE },
 			{ "false", TK_FALSE },
@@ -116,393 +116,393 @@ namespace SODA
 			{ "for", TK_FOR },
 			{ "while", TK_WHILE },
 		};
-		auto len = token.End - token.Start;
+		auto len = token.end - token.start;
 		for (auto &kwd : kwds)
 		{
 			if (kwd.first.length() != len)
 				continue;
 			for (auto i = 0u; i < len; i++)
 			{
-				if (SourceFile[token.Start - 1 + i] != kwd.first[i])
+				if (sourceFile[token.start - 1 + i] != kwd.first[i])
 					goto endOfLoopIter;
 			}
-			token.Kind = kwd.second;
+			token.kind = kwd.second;
 			return;
 		endOfLoopIter:
 			;
 		}
-		token.Kind = TK_IDENT;
+		token.kind = TK_IDENT;
 	}
 
-	TOKEN_KIND LEXER::NextToken_(TOKEN &token)
+	TokenKind Lexer::nextToken_(Token &token)
 	{
-		while (IsSpace())
-			NextChar();
+		while (isSpace())
+			nextChar();
 
-		token.Start = Offset;
-		if (Char == '/')
+		token.start = offset;
+		if (chr == '/')
 		{
-			NextChar();
-			if (Char == '/')
+			nextChar();
+			if (chr == '/')
 			{
 				do
-					NextChar();
-				while (Char != '\n');
-				token.End = Offset;
-				token.Kind = TK_COMMENT;
+					nextChar();
+				while (chr != '\n');
+				token.end = offset;
+				token.kind = TK_COMMENT;
 #if 0
-				return token.Kind;
+				return token.kind;
 #else 
-				return NextToken_(token);
+				return nextToken_(token);
 #endif
 			}
-			else if (Char == '*')
+			else if (chr == '*')
 			{
 				char lastChar;
 				bool terminated = false;
 				do {
-					lastChar = Char;
-					NextChar();
-					if (lastChar == '*' && Char == '/')
+					lastChar = chr;
+					nextChar();
+					if (lastChar == '*' && chr == '/')
 					{
-						NextChar();
+						nextChar();
 						terminated = true;
 						break;
 					}
-				} while (Char != EOF);
+				} while (chr != EOF);
 				if (!terminated)
-					Compiler.Error(token, "EOF inside of multi-line comment");
-				token.End = Offset;
-				token.Kind = TK_COMMENT;
+					compiler.error(token, "EOF inside of multi-line comment");
+				token.end = offset;
+				token.kind = TK_COMMENT;
 #if 0
-				return token.Kind;
+				return token.kind;
 #else 
-				return NextToken_(token);
+				return nextToken_(token);
 #endif
 			}
 			else
 			{
-				Compiler.Error(token, "stray '/' in input, expecting '//' or '/*' to begin a comment");
+				compiler.error(token, "stray '/' in input, expecting '//' or '/*' to begin a comment");
 			}
 		}
-		if (IsAlpha() || Char == '_')
+		if (isAlpha() || chr == '_')
 		{
-			while (IsAlnum() || Char == '_')
-				NextChar();
-			token.End = Offset;
-			SetIdKwdKind(token);
-			return token.Kind;
+			while (isAlnum() || chr == '_')
+				nextChar();
+			token.end = offset;
+			setIdKwdKind(token);
+			return token.kind;
 		}
-		else if (Char == '"' || Char == '\'')
+		else if (chr == '"' || chr == '\'')
 		{
-			char quote = Char;
+			char quote = chr;
 			char lastChar;
 			bool terminated = false;
 			do {
-				lastChar = Char;
-				NextChar();
-				if (Char == quote && lastChar != '\\')
+				lastChar = chr;
+				nextChar();
+				if (chr == quote && lastChar != '\\')
 				{
-					NextChar();
+					nextChar();
 					terminated = true;
 					break;
 				}
-			} while (Char != EOF);
-			token.End = Offset;
+			} while (chr != EOF);
+			token.end = offset;
 			if (!terminated)
-				Compiler.Error(token, "EOF inside of % literal", (Char == '"') ? "string" : "char");
+				compiler.error(token, "EOF inside of % literal", (chr == '"') ? "string" : "char");
 			else if (quote == '"')
-				token.Kind = TK_STRING;
+				token.kind = TK_STRING;
 			else
-				token.Kind = TK_CHAR;
-			return token.Kind;
+				token.kind = TK_CHAR;
+			return token.kind;
 		}
-		else if (IsDigit() || Char == '.')
+		else if (isDigit() || chr == '.')
 		{
-			if (Char == '0')
+			if (chr == '0')
 			{
-				NextChar();
-				switch (PeekChar())
+				nextChar();
+				switch (peekChar())
 				{
 				case '.': // 0.xxxx
-					NextChar();
+					nextChar();
 					do
-						NextChar();
-					while (IsDecimal());
-					token.End = Offset;
-					token.Kind = TK_FLOAT;
-					return token.Kind;
+						nextChar();
+					while (isDecimal());
+					token.end = offset;
+					token.kind = TK_FLOAT;
+					return token.kind;
 				case 'b':
 				case 'B':
-					NextChar();
+					nextChar();
 					do
-						NextChar();
-					while (IsBinary());
-					token.End = Offset;
-					token.Kind = TK_INT;
-					return token.Kind;
+						nextChar();
+					while (isBinary());
+					token.end = offset;
+					token.kind = TK_INT;
+					return token.kind;
 				case 'd':
 				case 'D':
-					NextChar();
+					nextChar();
 					do
-						NextChar();
-					while (IsDecimal());
-					token.End = Offset;
-					token.Kind = TK_INT;
-					return token.Kind;
+						nextChar();
+					while (isDecimal());
+					token.end = offset;
+					token.kind = TK_INT;
+					return token.kind;
 				case 'x':
 				case 'X':
-					NextChar();
+					nextChar();
 					do
-						NextChar();
-					while (IsHexidecimal());
-					token.End = Offset;
-					token.Kind = TK_INT;
-					return token.Kind;
+						nextChar();
+					while (isHexidecimal());
+					token.end = offset;
+					token.kind = TK_INT;
+					return token.kind;
 				case 'o':
 				case 'O':
-					NextChar();
+					nextChar();
 					// fall-through
 				default:
-					while (IsOctal())
-						NextChar();
-					token.End = Offset;
-					token.Kind = TK_INT;
-					return token.Kind;
+					while (isOctal())
+						nextChar();
+					token.end = offset;
+					token.kind = TK_INT;
+					return token.kind;
 				}
 			}
 			else
 			{
 				bool isFloat = false;
 				do {
-					if (Char == '.')
+					if (chr == '.')
 					{
 						if (isFloat)
-							Compiler.Error(token, "multiple decimal points in floating-point literal");
+							compiler.error(token, "multiple decimal points in floating-point literal");
 						else
 							isFloat = true;
 					}
-					NextChar();
-				} while (IsDecimal() || Char == '.');
-				token.End = Offset;
-				token.Kind = TK_FLOAT;
-				return token.Kind;
+					nextChar();
+				} while (isDecimal() || chr == '.');
+				token.end = offset;
+				token.kind = TK_FLOAT;
+				return token.kind;
 			}
 		}
-		else if (Char == '+')
+		else if (chr == '+')
 		{
-			NextChar();
-			if (Char == '+')
+			nextChar();
+			if (chr == '+')
 			{
-				NextChar();
-				token.Kind = TK_INCR;
+				nextChar();
+				token.kind = TK_INCR;
 			}
-			else if (Char == '=')
+			else if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_IADD;
+				nextChar();
+				token.kind = TK_IADD;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('+');
+				token.kind = TokenKind('+');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '-')
+		else if (chr == '-')
 		{
-			NextChar();
-			if (Char == '-')
+			nextChar();
+			if (chr == '-')
 			{
-				NextChar();
-				token.Kind = TK_DECR;
+				nextChar();
+				token.kind = TK_DECR;
 			}
-			else if (Char == '=')
+			else if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_ISUB;
+				nextChar();
+				token.kind = TK_ISUB;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('-');
+				token.kind = TokenKind('-');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '!')
+		else if (chr == '!')
 		{
-			NextChar();
-			if (Char == '=')
+			nextChar();
+			if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_NE;
+				nextChar();
+				token.kind = TK_NE;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('!');
+				token.kind = TokenKind('!');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '=')
+		else if (chr == '=')
 		{
-			NextChar();
-			if (Char == '=')
+			nextChar();
+			if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_EQ;
+				nextChar();
+				token.kind = TK_EQ;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('=');
+				token.kind = TokenKind('=');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '<')
+		else if (chr == '<')
 		{
-			NextChar();
-			if (Char == '=')
+			nextChar();
+			if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_LE;
+				nextChar();
+				token.kind = TK_LE;
 			}
-			else if (Char == '<')
+			else if (chr == '<')
 			{
-				NextChar();
-				if (Char == '=')
+				nextChar();
+				if (chr == '=')
 				{
-					NextChar();
-					token.Kind = TK_ILEFT;
+					nextChar();
+					token.kind = TK_ILEFT;
 				}
 				else
 				{
-					token.Kind = TK_LEFT;
+					token.kind = TK_LEFT;
 				}
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('<');
+				token.kind = TokenKind('<');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '>')
+		else if (chr == '>')
 		{
-			NextChar();
-			if (Char == '=')
+			nextChar();
+			if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_GE;
+				nextChar();
+				token.kind = TK_GE;
 			}
-			else if (Char == '>')
+			else if (chr == '>')
 			{
-				NextChar();
-				if (Char == '=')
+				nextChar();
+				if (chr == '=')
 				{
-					NextChar();
-					token.Kind = TK_IRIGHT;
+					nextChar();
+					token.kind = TK_IRIGHT;
 				}
 				else
 				{
-					token.Kind = TK_RIGHT;
+					token.kind = TK_RIGHT;
 				}
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('>');
+				token.kind = TokenKind('>');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '&')
+		else if (chr == '&')
 		{
-			NextChar();
-			if (Char == '&')
+			nextChar();
+			if (chr == '&')
 			{
-				NextChar();
-				token.Kind = TK_AND;
+				nextChar();
+				token.kind = TK_AND;
 			}
-			else if (Char == '=')
+			else if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_IAND;
+				nextChar();
+				token.kind = TK_IAND;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('&');
+				token.kind = TokenKind('&');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '|')
+		else if (chr == '|')
 		{
-			NextChar();
-			if (Char == '|')
+			nextChar();
+			if (chr == '|')
 			{
-				NextChar();
-				token.Kind = TK_OR;
+				nextChar();
+				token.kind = TK_OR;
 			}
-			else if (Char == '=')
+			else if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_IOR;
+				nextChar();
+				token.kind = TK_IOR;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('|');
+				token.kind = TokenKind('|');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == '^')
+		else if (chr == '^')
 		{
-			NextChar();
-			if (Char == '=')
+			nextChar();
+			if (chr == '=')
 			{
-				NextChar();
-				token.Kind = TK_IXOR;
+				nextChar();
+				token.kind = TK_IXOR;
 			}
 			else
 			{
-				token.Kind = TOKEN_KIND('^');
+				token.kind = TokenKind('^');
 			}
-			token.End = Offset;
-			return token.Kind;
+			token.end = offset;
+			return token.kind;
 		}
-		else if (Char == EOF)
+		else if (chr == EOF)
 		{
-			token.End = Offset;
-			token.Kind = TK_EOF;
-			return token.Kind;
+			token.end = offset;
+			token.kind = TK_EOF;
+			return token.kind;
 		}
 		else
 		{
-			char c = Char;
-			NextChar();
-			token.End = Offset;
-			token.Kind = static_cast<TOKEN_KIND>(c);
-			return token.Kind;
+			char c = chr;
+			nextChar();
+			token.end = offset;
+			token.kind = static_cast<TokenKind>(c);
+			return token.kind;
 		}
 	}
 
-	void TOKEN::GetText(std::string &text) const
+	void Token::getText(std::string &text) const
 	{
 		text.clear();
-		text.reserve(End - Start);
-		for (auto i = Start; i < End; i++)
-			text += File[i];
+		text.reserve(end - start);
+		for (auto i = start; i < end; i++)
+			text += file[i];
 	}
 
-	bool TokenizeFile(COMPILER &compiler, SOURCE_FILE &sourceFile, TOKEN_LIST &tokenList)
+	bool tokenizeFile(Compiler &compiler, SourceFile &sourceFile, TokenList &tokenList)
 	{
 		bool ok = true;
-		LEXER lexer(compiler, sourceFile);
-		TOKEN token(sourceFile);
+		Lexer lexer(compiler, sourceFile);
+		Token token(sourceFile);
 
-		while (lexer.NextToken(token) != TK_EOF)
+		while (lexer.nextToken(token) != TK_EOF)
 		{
-			if (token.Kind != TK_ERROR)
+			if (token.kind != TK_ERROR)
 				tokenList.push_back(token);
 			else
 			{
@@ -514,7 +514,7 @@ namespace SODA
 		return ok;
 	}
 
-	const char *TokenKindName(TOKEN_KIND kind)
+	const char *tokenKindName(TokenKind kind)
 	{
 		switch (kind)
 		{

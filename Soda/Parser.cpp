@@ -6,89 +6,89 @@
 #include <stack>
 #include <vector>
 
-namespace SODA
+namespace Soda
 {
 
-	struct PARSER
+	struct Parser
 	{
-		COMPILER &Compiler;
-		TOKEN_LIST &Tokens;
-		size_t Offset;
-		std::stack<size_t> OffsetStack;
-		std::stack<TOKEN*> TokenStack;
+		Compiler &compiler;
+		TokenList &tokens;
+		size_t offset;
+		std::stack<size_t> offsetStack;
+		std::stack<Token*> tokenStack;
 
-		PARSER(COMPILER &compiler, TOKEN_LIST &tokenList)
-			: Compiler(compiler), Tokens(tokenList), Offset(0)
+		Parser(Compiler &compiler, TokenList &tokenList)
+			: compiler(compiler), tokens(tokenList), offset(0)
 		{
-			assert(!Tokens.empty());
+			assert(!tokens.empty());
 		}
 
-		TOKEN *CurrentToken()
+		Token *currentToken()
 		{
-			assert(Offset < Tokens.size());
-			return &Tokens[Offset];
+			assert(offset < tokens.size());
+			return &tokens[offset];
 		}
 
-		TOKEN &PeekToken(size_t off = 1)
+		Token &peekToken(size_t off = 1)
 		{
-			if ((Offset + off) >= Tokens.size())
-				return Tokens[Tokens.size() - 1];
-			return Tokens[Offset + off];
+			if ((offset + off) >= tokens.size())
+				return tokens[tokens.size() - 1];
+			return tokens[offset + off];
 		}
 
-		void SaveOffset()
+		void saveOffset()
 		{
-			OffsetStack.push(Offset);
+			offsetStack.push(offset);
 		}
 
-		void RestoreOffset()
+		void restoreOffset()
 		{
-			Offset = OffsetStack.top();
-			DropOffset();
+			offset = offsetStack.top();
+			dropOffset();
 		}
 
-		void DropOffset()
+		void dropOffset()
 		{
-			OffsetStack.pop();
+			offsetStack.pop();
 		}
 
-		bool Accept(TOKEN_KIND kind)
+		bool accept(TokenKind kind)
 		{
-			if (Tokens[Offset].Kind == kind)
+			if (tokens[offset].kind == kind)
 			{
-				Offset++;
-				if (Offset >= Tokens.size())
-					Offset = Tokens.size() - 1;
+				offset++;
+				if (offset >= tokens.size())
+					offset = tokens.size() - 1;
 				return true;
 			}
 			return false;
 		}
 
-		bool Accept(int kind)
+		bool accept(int kind)
 		{
-			return Accept(static_cast<TOKEN_KIND>(kind));
+			return accept(static_cast<TokenKind>(kind));
 		}
 
-		bool Expect(TOKEN_KIND kind)
+		bool expect(TokenKind kind)
 		{
-			if (!Accept(kind))
+			if (!accept(kind))
 			{
-				Compiler.Error(Tokens[Offset], "unexpected token '%', expecting '%'", 
-					Tokens[Offset].GetKindName(), TokenKindName(kind));
+				compiler.error(tokens[offset], "unexpected token '%', expecting '%'", 
+					tokens[offset].getKindName(), tokenKindName(kind));
 				return false;
 			}
 			return true;
 		}
 
-		bool Expect(int kind)
+		bool expect(int kind)
 		{
-			return Expect(static_cast<TOKEN_KIND>(kind));
+			return expect(static_cast<TokenKind>(kind));
 		}
 
 		template< class NodePtrT >
-		bool IsIgnored(NodePtrT &node)
+		bool isIgnored(NodePtrT &node)
 		{
-			switch (node->Kind)
+			switch (node->kind)
 			{
 			case NK_EMPTY_DECL:
 			case NK_EMPTY_STMT:
@@ -100,41 +100,41 @@ namespace SODA
 			}
 		}
 
-		std::string TokenText()
+		std::string tokenText()
 		{
 			std::string text;
-			CurrentToken()->GetText(text);
+			currentToken()->getText(text);
 			return text;
 		}
 
-		AST_EXPR_PTR ParsePrimaryExpr()
+		AstExprPtr parsePrimaryExpr()
 		{
-			auto startToken = CurrentToken();
-			auto text = TokenText();
-			if (Accept(TK_NIL))
-				return std::make_unique<AST_NIL>(startToken, startToken);
-			else if (Accept(TK_TRUE))
-				return std::make_unique<AST_BOOL>(true, startToken, startToken);
-			else if (Accept(TK_FALSE))
-				return std::make_unique<AST_BOOL>(false, startToken, startToken);
-			else if (Accept(TK_INT))
-				return std::make_unique<AST_INT>(0, startToken, startToken);
-			else if (Accept(TK_FLOAT))
-				return std::make_unique<AST_FLOAT>(0.0, startToken, startToken);
-			else if (Accept(TK_CHAR))
-				return std::make_unique<AST_CHAR>(text, startToken, startToken);
-			else if (Accept(TK_STRING))
-				return std::make_unique<AST_STRING>(text, startToken, startToken);
-			else if (Accept(TK_IDENT))
-				return std::make_unique<AST_IDENTIFIER>(text, startToken, startToken);
-			else if (Accept('('))
+			auto startToken = currentToken();
+			auto text = tokenText();
+			if (accept(TK_NIL))
+				return std::make_unique<AstNil>(startToken, startToken);
+			else if (accept(TK_TRUE))
+				return std::make_unique<AstBool>(true, startToken, startToken);
+			else if (accept(TK_FALSE))
+				return std::make_unique<AstBool>(false, startToken, startToken);
+			else if (accept(TK_INT))
+				return std::make_unique<AstInt>(0, startToken, startToken);
+			else if (accept(TK_FLOAT))
+				return std::make_unique<AstFloat>(0.0, startToken, startToken);
+			else if (accept(TK_CHAR))
+				return std::make_unique<AstChar>(text, startToken, startToken);
+			else if (accept(TK_STRING))
+				return std::make_unique<AstString>(text, startToken, startToken);
+			else if (accept(TK_IDENT))
+				return std::make_unique<AstIdentifier>(text, startToken, startToken);
+			else if (accept('('))
 			{
-				auto expr = ParseExpr();
-				auto endToken = CurrentToken();
-				if (!Expect(')'))
+				auto expr = parseExpr();
+				auto endToken = currentToken();
+				if (!expect(')'))
 					return nullptr;
-				expr->Start = startToken;
-				expr->End = endToken;
+				expr->start = startToken;
+				expr->end = endToken;
 				return expr;
 			}
 			else
@@ -143,248 +143,248 @@ namespace SODA
 			}
 		}
 
-		AST_EXPR_PTR ParseExpr()
+		AstExprPtr parseExpr()
 		{
-			return ParsePrimaryExpr();
+			return parsePrimaryExpr();
 		}
 
-		AST_STMT_PTR ParseStmt()
+		AstStmtPtr parseStmt()
 		{
-			auto startToken = CurrentToken();
-			if (auto stmt = ParseTopLevel())
+			auto startToken = currentToken();
+			if (auto stmt = parseTopLevel())
 				return stmt;
-			else if (auto expr = ParseExpr()) 
+			else if (auto expr = parseExpr()) 
 			{
-				auto endToken = CurrentToken();
-				if (!Expect(';'))
+				auto endToken = currentToken();
+				if (!expect(';'))
 					return nullptr;
-				return std::make_unique<AST_EXPR_STMT>(std::move(expr), startToken, endToken);
+				return std::make_unique<AstExprStmt>(std::move(expr), startToken, endToken);
 			}
 			return nullptr;
 		}
 		
-		AST_TYPEREF_PTR ParseTypeRef();
-		AST_DECL_PTR ParseTypeDef();
-		AST_DECL_PTR ParseVarOrFuncDef();
-		AST_DECL_PTR ParseParameter();
-		AST_DECL_PTR ParseTopLevel();
+		AstTypeRefPtr parseTypeRef();
+		AstDeclPtr parseTypeDef();
+		AstDeclPtr parseVarOrFuncDef();
+		AstDeclPtr parseParameter();
+		AstDeclPtr parseTopLevel();
 	};
 
-	struct BACKTRACKER
+	struct BackTracker
 	{
-		PARSER &Parser;
-		bool Cancelled;
-		BACKTRACKER(PARSER &p) : Parser(p), Cancelled(false)
+		Parser &parser;
+		bool cancelled;
+		BackTracker(Parser &p) : parser(p), cancelled(false)
 		{ 
-			Parser.SaveOffset(); 
+			parser.saveOffset(); 
 		}
-		~BACKTRACKER() 
+		~BackTracker() 
 		{ 
-			if (!Cancelled) 
-				Parser.RestoreOffset(); 
+			if (!cancelled) 
+				parser.restoreOffset(); 
 		}
-		void Cancel()
+		void cancel()
 		{ 
-			if (!Cancelled)
+			if (!cancelled)
 			{
-				Parser.DropOffset();
-				Cancelled = true;
+				parser.dropOffset();
+				cancelled = true;
 			}
 		}
 	};
 
-	AST_TYPEREF_PTR PARSER::ParseTypeRef()
+	AstTypeRefPtr Parser::parseTypeRef()
 	{
-		BACKTRACKER bt(*this);
-		auto startToken = CurrentToken();
+		BackTracker bt(*this);
+		auto startToken = currentToken();
 		auto typeFlags = TF_NONE;
-		if (Accept(TK_CONST))
-			typeFlags = TYPE_FLAGS(typeFlags | TF_CONST);
-		auto name = TokenText();
-		auto endToken = CurrentToken();
-		if (!Accept(TK_IDENT))
+		if (accept(TK_CONST))
+			typeFlags = TypeFlags(typeFlags | TF_CONST);
+		auto name = tokenText();
+		auto endToken = currentToken();
+		if (!accept(TK_IDENT))
 			return nullptr;
-		auto typeRef = std::make_unique<AST_TYPEREF>(name, typeFlags, startToken, endToken);
+		auto typeRef = std::make_unique<AstTypeRef>(name, typeFlags, startToken, endToken);
 		while (true)
 		{
 			typeFlags = TF_NONE;
-			endToken = CurrentToken();
-			if (Accept('*'))
+			endToken = currentToken();
+			if (accept('*'))
 			{
-				typeFlags = TYPE_FLAGS(typeFlags | TF_POINTER);
-				if (CurrentToken()->Kind == TK_CONST)
+				typeFlags = TypeFlags(typeFlags | TF_POINTER);
+				if (currentToken()->kind == TK_CONST)
 				{
-					endToken = CurrentToken();
-					Expect(TK_CONST);
-					typeFlags = TYPE_FLAGS(typeFlags | TF_CONST);
+					endToken = currentToken();
+					expect(TK_CONST);
+					typeFlags = TypeFlags(typeFlags | TF_CONST);
 				}
-				typeRef = std::make_unique<AST_TYPEREF>(std::move(typeRef), typeFlags, startToken, endToken);
+				typeRef = std::make_unique<AstTypeRef>(std::move(typeRef), typeFlags, startToken, endToken);
 			}
-			else if (Accept('['))
+			else if (accept('['))
 			{
-				if (!Expect(']'))
+				if (!expect(']'))
 					return nullptr;
-				typeFlags = TYPE_FLAGS(typeFlags | TF_ARRAY);
-				if (CurrentToken()->Kind == TK_CONST)
+				typeFlags = TypeFlags(typeFlags | TF_ARRAY);
+				if (currentToken()->kind == TK_CONST)
 				{
-					endToken = CurrentToken();
-					Expect(TK_CONST);
-					typeFlags = TYPE_FLAGS(typeFlags | TF_CONST);
+					endToken = currentToken();
+					expect(TK_CONST);
+					typeFlags = TypeFlags(typeFlags | TF_CONST);
 				}
-				typeRef = std::make_unique<AST_TYPEREF>(std::move(typeRef), typeFlags, startToken, endToken);
+				typeRef = std::make_unique<AstTypeRef>(std::move(typeRef), typeFlags, startToken, endToken);
 			}
 			else
 				break;
 		}
-		bt.Cancel();
+		bt.cancel();
 		return typeRef;
 	}
 
-	AST_DECL_PTR PARSER::ParseTypeDef()
+	AstDeclPtr Parser::parseTypeDef()
 	{
-		auto startToken = CurrentToken();
-		Expect(TK_TYPEDEF);
-		auto typeRef = ParseTypeRef();
+		auto startToken = currentToken();
+		expect(TK_TYPEDEF);
+		auto typeRef = parseTypeRef();
 		assert(typeRef);
-		auto name = TokenText();
-		if (!Expect(TK_IDENT))
+		auto name = tokenText();
+		if (!expect(TK_IDENT))
 			return nullptr;
-		auto endToken = CurrentToken();
-		if (!Expect(';'))
+		auto endToken = currentToken();
+		if (!expect(';'))
 			return nullptr;
-		return std::make_unique<AST_TYPEDEF>(std::move(name), std::move(typeRef), startToken, endToken);
+		return std::make_unique<AstTypedef>(std::move(name), std::move(typeRef), startToken, endToken);
 	}
 
-	AST_DECL_PTR PARSER::ParseVarOrFuncDef()
+	AstDeclPtr Parser::parseVarOrFuncDef()
 	{
-		BACKTRACKER bt(*this);
-		auto startToken = CurrentToken();
+		BackTracker bt(*this);
+		auto startToken = currentToken();
 		auto declFlags = DF_NONE;
-		if (Accept(TK_STATIC))
-			declFlags = DECL_FLAGS(declFlags | DF_STATIC);
-		auto typeRef = ParseTypeRef();
+		if (accept(TK_STATIC))
+			declFlags = DeclFlags(declFlags | DF_STATIC);
+		auto typeRef = parseTypeRef();
 		if (!typeRef)
 			return nullptr;
-		auto name = TokenText();
-		if (!Expect(TK_IDENT))
+		auto name = tokenText();
+		if (!expect(TK_IDENT))
 			return nullptr;
-		AST_DECL_LIST params;
+		AstDeclList params;
 		// Function
-		if (Accept('('))
+		if (accept('('))
 		{
-			if (!Accept(')'))
+			if (!accept(')'))
 			{
 				while (true)
 				{
-					if (auto param = ParseParameter())
+					if (auto param = parseParameter())
 					{
-						if (!IsIgnored(param))
+						if (!isIgnored(param))
 							params.push_back(std::move(param));
-						if (!Accept(','))
+						if (!accept(','))
 							break;
 					}
 					else
 						break;
 				}
-				if (!Expect(')'))
+				if (!expect(')'))
 					return nullptr;
 			}
-			if (!Expect('{'))
+			if (!expect('{'))
 				return nullptr;
-			AST_STMT_LIST stmts;
-			auto endToken = CurrentToken();
-			if (!Accept('}'))
+			AstStmtList stmts;
+			auto endToken = currentToken();
+			if (!accept('}'))
 			{
 				while (true)
 				{
-					if (auto stmt = ParseStmt())
+					if (auto stmt = parseStmt())
 					{
-						if (!IsIgnored(stmt))
+						if (!isIgnored(stmt))
 							stmts.push_back(std::move(stmt));
 					}
 					else
 						break;
 				}
-				endToken = CurrentToken();
-				if (!Expect('}'))
+				endToken = currentToken();
+				if (!expect('}'))
 					return nullptr;
 			}
-			auto fun = std::make_unique<AST_FUNC_DECL>(std::move(name), std::move(typeRef), std::move(params), std::move(stmts), startToken, endToken);
-			fun->Flags = DECL_FLAGS(fun->Flags | declFlags);
-			bt.Cancel();
+			auto fun = std::make_unique<AstFuncDecl>(std::move(name), std::move(typeRef), std::move(params), std::move(stmts), startToken, endToken);
+			fun->flags = DeclFlags(fun->flags | declFlags);
+			bt.cancel();
 			return fun;
 		}
 		// Variable
 		else
 		{
-			AST_EXPR_PTR initExpr;
-			if (Accept('='))
-				initExpr = ParseExpr();
-			auto endToken = CurrentToken();
-			if (!Expect(';'))
+			AstExprPtr initExpr;
+			if (accept('='))
+				initExpr = parseExpr();
+			auto endToken = currentToken();
+			if (!expect(';'))
 				return nullptr;
-			auto var = std::make_unique<AST_VAR_DECL>(std::move(name), std::move(typeRef), std::move(initExpr), startToken, endToken);
-			var->Flags = DECL_FLAGS(var->Flags | declFlags);
-			bt.Cancel();
+			auto var = std::make_unique<AstVarDecl>(std::move(name), std::move(typeRef), std::move(initExpr), startToken, endToken);
+			var->flags = DeclFlags(var->flags | declFlags);
+			bt.cancel();
 			return var;
 		}
 	}
 
-	AST_DECL_PTR PARSER::ParseParameter()
+	AstDeclPtr Parser::parseParameter()
 	{
-		auto startToken = CurrentToken();
-		auto typeRef = ParseTypeRef();
+		auto startToken = currentToken();
+		auto typeRef = parseTypeRef();
 		assert(typeRef);
-		auto name = TokenText();
-		auto endToken = CurrentToken();
-		if (!Expect(TK_IDENT))
+		auto name = tokenText();
+		auto endToken = currentToken();
+		if (!expect(TK_IDENT))
 			return nullptr;
-		AST_EXPR_PTR defExpr;
-		if (Accept('=')) {
-			defExpr = ParseExpr();
+		AstExprPtr defExpr;
+		if (accept('=')) {
+			defExpr = parseExpr();
 			assert(defExpr);
-			endToken = defExpr->End;
+			endToken = defExpr->end;
 		}
-		return std::make_unique<AST_PARAM_DECL>(std::move(name), std::move(typeRef), std::move(defExpr), startToken, endToken);
+		return std::make_unique<AstParamDecl>(std::move(name), std::move(typeRef), std::move(defExpr), startToken, endToken);
 	}
 
-	AST_DECL_PTR PARSER::ParseTopLevel()
+	AstDeclPtr Parser::parseTopLevel()
 	{
-		auto startToken = CurrentToken();
-		if (CurrentToken()->Kind == ';')
+		auto startToken = currentToken();
+		if (currentToken()->kind == ';')
 		{
-			auto endToken = CurrentToken();
-			Expect(';');
-			return std::make_unique<AST_EMPTY_DECL>(startToken, endToken);
+			auto endToken = currentToken();
+			expect(';');
+			return std::make_unique<AstEmptyDecl>(startToken, endToken);
 		}
-		else if (CurrentToken()->Kind == TK_COMMENT)
+		else if (currentToken()->kind == TK_COMMENT)
 		{
 			std::string text;
-			CurrentToken()->GetText(text);
-			auto endToken = CurrentToken();
-			Expect(TK_COMMENT);
-			return std::make_unique<AST_COMMENT_DECL>(text, startToken, endToken);
+			currentToken()->getText(text);
+			auto endToken = currentToken();
+			expect(TK_COMMENT);
+			return std::make_unique<AstCommentDecl>(text, startToken, endToken);
 		}
-		else if (CurrentToken()->Kind == TK_TYPEDEF)
+		else if (currentToken()->kind == TK_TYPEDEF)
 		{
-			return ParseTypeDef();
+			return parseTypeDef();
 		}
 		else
 		{
-			return ParseVarOrFuncDef();
+			return parseVarOrFuncDef();
 		}
 	}
 
-	std::unique_ptr<AST_MODULE> ParseTokens(COMPILER &compiler, TOKEN_LIST &tokenList)
+	std::unique_ptr<AstModule> parseTokens(Compiler &compiler, TokenList &tokenList)
 	{
-		PARSER parser(compiler, tokenList);
-		auto mod = std::make_unique<AST_MODULE>();
+		Parser parser(compiler, tokenList);
+		auto mod = std::make_unique<AstModule>();
 		while (true)
 		{
-			if (auto decl = parser.ParseTopLevel())
+			if (auto decl = parser.parseTopLevel())
 			{
-				if (!parser.IsIgnored(decl))
-					mod->Members.push_back(std::move(decl));
+				if (!parser.isIgnored(decl))
+					mod->members.push_back(std::move(decl));
 			}
 			else
 			{
@@ -394,4 +394,4 @@ namespace SODA
 		return mod;
 	}
 
-} // namespace SODA
+} // namespace Soda

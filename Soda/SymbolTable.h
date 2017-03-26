@@ -4,12 +4,12 @@
 #include <string>
 #include <unordered_map>
 
-namespace SODA
+namespace Soda
 {
 
-	struct AST_DECL;
+	struct AstDecl;
 
-	enum SYMBOL_KIND
+	enum SymbolKind
 	{
 		SK_BUILTIN,
 		SK_TYPEDEF,
@@ -22,30 +22,30 @@ namespace SODA
 		SK_ENUM,
 	};
 
-	struct SYMBOL
+	struct Symbol
 	{
-		SYMBOL_KIND Kind;
-		AST_DECL *Decl;
-		SYMBOL(SYMBOL_KIND kind, AST_DECL *decl = nullptr) 
-			: Kind(kind), Decl(decl) {}
+		SymbolKind kind;
+		AstDecl *decl;
+		Symbol(SymbolKind kind, AstDecl *decl = nullptr) 
+			: kind(kind), decl(decl) {}
 	};
 
-	typedef std::unique_ptr<SYMBOL> SYMBOL_PTR;
+	typedef std::unique_ptr<Symbol> SymbolPtr;
 
-	class SYMBOL_TABLE
+	class SymbolTable
 	{
 	public:
-		SYMBOL_TABLE *Parent;
-		SYMBOL_TABLE(SYMBOL_TABLE *parent = nullptr);
-		bool Define(SYMBOL_KIND kind, AST_DECL *decl);
-		SYMBOL *Lookup(const std::string &name, bool rec = true);
-		bool IsDefined(const std::string &name, bool rec = true)
+		SymbolTable *parent;
+		SymbolTable(SymbolTable *parent = nullptr);
+		bool define(SymbolKind kind, AstDecl *decl);
+		Symbol *lookup(const std::string &name, bool rec = true);
+		bool isDefined(const std::string &name, bool rec = true)
 		{
-			return (Lookup(name, rec) != nullptr);
+			return (lookup(name, rec) != nullptr);
 		}
 
 	private:
-		std::unordered_map<std::string, SYMBOL_PTR> Table;
+		std::unordered_map<std::string, SymbolPtr> table;
 	};
 
-} // namespace SODA
+} // namespace Soda

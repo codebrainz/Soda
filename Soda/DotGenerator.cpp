@@ -2,15 +2,15 @@
 #include "Visitor.h"
 #include <unordered_map>
 
-namespace SODA
+namespace Soda
 {
 
-	struct DOT_ID_TABLE
+	struct DotIdTable
 	{
 		size_t idCounter;
-		std::unordered_map<AST_NODE*, size_t> table;
-		DOT_ID_TABLE() : idCounter(0) {}
-		size_t nodeId(AST_NODE *n)
+		std::unordered_map<AstNode*, size_t> table;
+		DotIdTable() : idCounter(0) {}
+		size_t nodeId(AstNode *n)
 		{
 			auto found = table.find(n);
 			if (found != table.end())
@@ -21,29 +21,29 @@ namespace SODA
 		}
 	};
 
-	struct DOT_NODE_GENERATOR : public AST_VISITOR
+	struct DotNodeGenerator : public AstVisitor
 	{
 		std::ostream &os;
-		DOT_ID_TABLE &idTable;
-		DOT_NODE_GENERATOR(std::ostream &os, DOT_ID_TABLE &idTable) : os(os), idTable(idTable) {}
+		DotIdTable &idTable;
+		DotNodeGenerator(std::ostream &os, DotIdTable &idTable) : os(os), idTable(idTable) {}
 	};
 
-	struct DOT_EDGE_GENERATOR : public AST_VISITOR
+	struct DotEdgeGenerator : public AstVisitor
 	{
 		std::ostream &os;
-		DOT_ID_TABLE &idTable;
-		DOT_EDGE_GENERATOR(std::ostream &os, DOT_ID_TABLE &idTable) : os(os), idTable(idTable) {}
+		DotIdTable &idTable;
+		DotEdgeGenerator(std::ostream &os, DotIdTable &idTable) : os(os), idTable(idTable) {}
 	};
 
-	void generateDot(std::unique_ptr<AST_MODULE> &m, std::ostream &os)
+	void generateDot(std::unique_ptr<AstModule> &m, std::ostream &os)
 	{
-		DOT_ID_TABLE idTable;
-		DOT_NODE_GENERATOR nodeGenerator(os, idTable);
-		DOT_EDGE_GENERATOR edgeGenerator(os, idTable);
+		DotIdTable idTable;
+		DotNodeGenerator nodeGenerator(os, idTable);
+		DotEdgeGenerator edgeGenerator(os, idTable);
 		os << "graph AstGraph {\n";
 		m->accept(nodeGenerator);
 		m->accept(edgeGenerator);
 		os << "}\n";
 	}
 
-} // namespace SODA
+} // namespace Soda

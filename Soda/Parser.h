@@ -3,12 +3,12 @@
 #include "Tokenizer.h"
 #include <memory>
 
-namespace SODA
+namespace Soda
 {
 
-	class COMPILER;
-	struct AST_MODULE;
+	class Compiler;
+	struct AstModule;
 
-	std::unique_ptr<AST_MODULE> ParseTokens(COMPILER &compiler, TOKEN_LIST &tokenList);
+	std::unique_ptr<AstModule> parseTokens(Compiler &compiler, TokenList &tokenList);
 
-} // namespace SODA
+} // namespace Soda

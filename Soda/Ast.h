@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-namespace SODA
+namespace Soda
 {
 
-	enum AST_NODE_KIND
+	enum AstNodeKind
 	{
 		NK_AMBIGUITY,
 		NK_NIL,
@@ -43,128 +43,128 @@ namespace SODA
 		NK_MODULE,
 	};
 
-	struct AST_NODE
+	struct AstNode
 	{
-		AST_NODE_KIND Kind;
-		TOKEN *Start;
-		TOKEN *End;
-		AST_NODE(AST_NODE_KIND kind, TOKEN *start, TOKEN *end)
-			: Kind(kind), Start(start), End(end) {}
-		~AST_NODE() {}
-		virtual void accept(AST_VISITOR&) = 0;
+		AstNodeKind kind;
+		Token *start;
+		Token *end;
+		AstNode(AstNodeKind kind, Token *start, Token *end)
+			: kind(kind), start(start), end(end) {}
+		~AstNode() {}
+		virtual void accept(AstVisitor&) = 0;
 		virtual const std::string &kindName() const = 0;
 	};
 
-#define AST_VISITABLE(Name) \
-  virtual void accept(AST_VISITOR &v) override final { v.visit(*this); } \
+#define AST_VISITABLE(name) \
+  virtual void accept(AstVisitor &v) override final { v.visit(*this); } \
   virtual const std::string &kindName() const override final { \
-    static const std::string nm(#Name); \
+    static const std::string nm(#name); \
 	return nm; \
   }
 
-	struct AST_EXPR : public AST_NODE
+	struct AstExpr : public AstNode
 	{
-		AST_EXPR(AST_NODE_KIND kind, TOKEN *start, TOKEN *end)
-			: AST_NODE(kind, start, end) {}
+		AstExpr(AstNodeKind kind, Token *start, Token *end)
+			: AstNode(kind, start, end) {}
 	};
 
-	struct AST_STMT : public AST_NODE
+	struct AstStmt : public AstNode
 	{
-		AST_STMT(AST_NODE_KIND kind, TOKEN *start, TOKEN *end)
-			: AST_NODE(kind, start, end) {}
+		AstStmt(AstNodeKind kind, Token *start, Token *end)
+			: AstNode(kind, start, end) {}
 	};
 
-	enum DECL_FLAGS
+	enum DeclFlags
 	{
 		DF_NONE = 0,
 		DF_STATIC = 1,
 	};
 
-	struct AST_DECL : public AST_STMT
+	struct AstDecl : public AstStmt
 	{
-		DECL_FLAGS Flags;
-		std::string Name;
-		std::string MangledName;
-		AST_DECL(DECL_FLAGS flags, std::string name, AST_NODE_KIND kind, TOKEN *start, TOKEN *end)
-			: AST_STMT(kind, start, end), Flags(flags), Name(std::move(name)) {}
+		DeclFlags flags;
+		std::string name;
+		std::string mangledName;
+		AstDecl(DeclFlags flags, std::string name, AstNodeKind kind, Token *start, Token *end)
+			: AstStmt(kind, start, end), flags(flags), name(std::move(name)) {}
 	};
 
-	typedef std::unique_ptr<AST_NODE> AST_NODE_PTR;
-	typedef std::unique_ptr<AST_EXPR> AST_EXPR_PTR;
-	typedef std::unique_ptr<AST_STMT> AST_STMT_PTR;
-	typedef std::unique_ptr<AST_DECL> AST_DECL_PTR;
+	typedef std::unique_ptr<AstNode> AstNodePtr;
+	typedef std::unique_ptr<AstExpr> AstExprPtr;
+	typedef std::unique_ptr<AstStmt> AstStmtPtr;
+	typedef std::unique_ptr<AstDecl> AstDeclPtr;
 
-	typedef std::vector<AST_NODE_PTR> AST_NODE_LIST;
-	typedef std::vector<AST_EXPR_PTR> AST_EXPR_LIST;
-	typedef std::vector<AST_STMT_PTR> AST_STMT_LIST;
-	typedef std::vector<AST_DECL_PTR> AST_DECL_LIST;
+	typedef std::vector<AstNodePtr> AstNodeList;
+	typedef std::vector<AstExprPtr> AstExprList;
+	typedef std::vector<AstStmtPtr> AstStmtList;
+	typedef std::vector<AstDeclPtr> AstDeclList;
 
-	struct AST_AMBIGUITY final : public AST_NODE
+	struct AstAmbiguity final : public AstNode
 	{
-		AST_NODE_LIST Alternatives;
-		AST_AMBIGUITY(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_AMBIGUITY, start, end) {}
-		AST_AMBIGUITY(AST_NODE_LIST Alternatives, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_AMBIGUITY, start, end), Alternatives(std::move(Alternatives)) {}
+		AstNodeList alternatives;
+		AstAmbiguity(Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_AMBIGUITY, start, end) {}
+		AstAmbiguity(AstNodeList alternatives, Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_AMBIGUITY, start, end), alternatives(std::move(alternatives)) {}
 		AST_VISITABLE(Ambiguity)
 	};
 
-	struct AST_NIL final : public AST_EXPR
+	struct AstNil final : public AstExpr
 	{
-		AST_NIL(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_NIL, start, end) {}
+		AstNil(Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_NIL, start, end) {}
 		AST_VISITABLE(Nil)
 	};
 
-	struct AST_BOOL final : public AST_EXPR
+	struct AstBool final : public AstExpr
 	{
-		bool Value;
-		AST_BOOL(bool value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_BOOL, start, end) {}
+		bool value;
+		AstBool(bool value, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_BOOL, start, end) {}
 		AST_VISITABLE(Bool)
 	};
 
-	struct AST_INT final : public AST_EXPR
+	struct AstInt final : public AstExpr
 	{
-		unsigned long long int Value;
-		AST_INT(unsigned long long int value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_INT, start, end), Value(value) {}
+		unsigned long long int value;
+		AstInt(unsigned long long int value, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_INT, start, end), value(value) {}
 		AST_VISITABLE(Int)
 	};
 
-	struct AST_FLOAT final : public AST_EXPR
+	struct AstFloat final : public AstExpr
 	{
-		long double Value;
-		AST_FLOAT(long double value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_FLOAT, start, end), Value(value) {}
+		long double value;
+		AstFloat(long double value, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_FLOAT, start, end), value(value) {}
 		AST_VISITABLE(Float)
 	};
 
-	struct AST_CHAR final : public AST_EXPR
+	struct AstChar final : public AstExpr
 	{
-		std::string Value;
-		AST_CHAR(std::string value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_CHAR, start, end), Value(std::move(value)) {}
+		std::string value;
+		AstChar(std::string value, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_CHAR, start, end), value(std::move(value)) {}
 		AST_VISITABLE(Char)
 	};
 
-	struct AST_STRING final : public AST_EXPR
+	struct AstString final : public AstExpr
 	{
-		std::string Value;
-		AST_STRING(std::string value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_STRING, start, end), Value(std::move(value)) {}
+		std::string value;
+		AstString(std::string value, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_STRING, start, end), value(std::move(value)) {}
 		AST_VISITABLE(String)
 	};
 
-	struct AST_IDENTIFIER final : public AST_EXPR
+	struct AstIdentifier final : public AstExpr
 	{
-		std::string Name;
-		AST_IDENTIFIER(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_IDENTIFIER, start, end), Name(name) {}
+		std::string name;
+		AstIdentifier(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_IDENTIFIER, start, end), name(name) {}
 		AST_VISITABLE(Identifier)
 	};
 
-	enum UNARY_OPERATOR
+	enum UnaryOperator
 	{
 		UOP_POS,
 		UOP_NEG,
@@ -176,16 +176,16 @@ namespace SODA
 		UOP_NOT,
 	};
 
-	struct AST_UNARY final : public AST_EXPR
+	struct AstUnary final : public AstExpr
 	{
-		UNARY_OPERATOR Op;
-		AST_EXPR_PTR Operand;
-		AST_UNARY(UNARY_OPERATOR op, AST_EXPR_PTR operand, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_UNARY, start, end), Op(op), Operand(std::move(operand)) {}
+		UnaryOperator op;
+		AstExprPtr operand;
+		AstUnary(UnaryOperator op, AstExprPtr operand, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_UNARY, start, end), op(op), operand(std::move(operand)) {}
 		AST_VISITABLE(Unary)
 	};
 
-	enum BINARY_OPERATOR
+	enum BinaryOperator
 	{
 		BOP_ADD,
 		BOP_SUB,
@@ -216,17 +216,17 @@ namespace SODA
 		BOP_IRSHIFT,
 	};
 
-	struct AST_BINARY final : public AST_EXPR
+	struct AstBinary final : public AstExpr
 	{
-		BINARY_OPERATOR Op;
-		AST_EXPR_PTR Left;
-		AST_EXPR_PTR Right;
-		AST_BINARY(BINARY_OPERATOR op, AST_EXPR_PTR left, AST_EXPR_PTR right, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_BINARY, start, end), Op(op), Left(std::move(left)), Right(std::move(right)) {}
+		BinaryOperator op;
+		AstExprPtr left;
+		AstExprPtr right;
+		AstBinary(BinaryOperator op, AstExprPtr left, AstExprPtr right, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_BINARY, start, end), op(op), left(std::move(left)), right(std::move(right)) {}
 		AST_VISITABLE(Binary)
 	};
 
-	enum TYPE_FLAGS
+	enum TypeFlags
 	{
 		TF_NONE = 0,
 		TF_CONST = 1,
@@ -234,206 +234,206 @@ namespace SODA
 		TF_ARRAY = 4,
 	};
 
-	struct AST_TYPEREF final : public AST_NODE
+	struct AstTypeRef final : public AstNode
 	{
-		std::string Name;
-		std::unique_ptr<AST_TYPEREF> RefType;
-		TYPE_FLAGS TypeFlags;
-		AST_TYPEREF(std::string name, TYPE_FLAGS typeFlags = TF_NONE, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_TYPEREF, start, end), Name(std::move(name)), TypeFlags(typeFlags) {}
-		AST_TYPEREF(std::unique_ptr<AST_TYPEREF> refType, TYPE_FLAGS typeFlags = TF_NONE, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_TYPEREF, start, end), RefType(std::move(refType)), TypeFlags(typeFlags) {}
+		std::string name;
+		std::unique_ptr<AstTypeRef> refType;
+		TypeFlags typeFlags;
+		AstTypeRef(std::string name, TypeFlags typeFlags = TF_NONE, Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_TYPEREF, start, end), name(std::move(name)), typeFlags(typeFlags) {}
+		AstTypeRef(std::unique_ptr<AstTypeRef> refType, TypeFlags typeFlags = TF_NONE, Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_TYPEREF, start, end), refType(std::move(refType)), typeFlags(typeFlags) {}
 		AST_VISITABLE(TypeRef)
 	};
 
-	typedef std::unique_ptr<AST_TYPEREF> AST_TYPEREF_PTR;
-	typedef std::vector<AST_TYPEREF_PTR> AST_TYPEREF_LIST;
+	typedef std::unique_ptr<AstTypeRef> AstTypeRefPtr;
+	typedef std::vector<AstTypeRefPtr> AstTypeRefList;
 
-	struct AST_CAST final : public AST_EXPR
+	struct AstCast final : public AstExpr
 	{
-		AST_TYPEREF_PTR TypeRef;
-		AST_EXPR_PTR Expr;
-		AST_CAST(AST_TYPEREF_PTR typeRef, AST_EXPR_PTR expr, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_EXPR(NK_CAST, start, end), TypeRef(std::move(typeRef)), Expr(std::move(expr)) {}
+		AstTypeRefPtr typeRef;
+		AstExprPtr expr;
+		AstCast(AstTypeRefPtr typeRef, AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_CAST, start, end), typeRef(std::move(typeRef)), expr(std::move(expr)) {}
 		AST_VISITABLE(Cast)
 	};
 
-	struct AST_EMPTY_STMT final : public AST_STMT
+	struct AstEmptyStmt final : public AstStmt
 	{
-		AST_EMPTY_STMT(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STMT(NK_EMPTY_STMT, start, end) {}
+		AstEmptyStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_EMPTY_STMT, start, end) {}
 		AST_VISITABLE(EmptyStmt)
 	};
 
-	struct AST_COMMENT_STMT final : public AST_STMT
+	struct AstCommentStmt final : public AstStmt
 	{
-		std::string Text;
-		AST_COMMENT_STMT(std::string text, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STMT(NK_COMMENT_STMT, start, end), Text(std::move(text)) {}
+		std::string text;
+		AstCommentStmt(std::string text, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_COMMENT_STMT, start, end), text(std::move(text)) {}
 		AST_VISITABLE(CommentStmt)
 	};
 
-	struct AST_EXPR_STMT final : public AST_STMT
+	struct AstExprStmt final : public AstStmt
 	{
-		AST_EXPR_PTR Expr;
-		AST_EXPR_STMT(AST_EXPR_PTR expr, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STMT(NK_EXPR_STMT, start, end), Expr(std::move(expr)) {}
+		AstExprPtr expr;
+		AstExprStmt(AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_EXPR_STMT, start, end), expr(std::move(expr)) {}
 		AST_VISITABLE(ExprStmt)
 	};
 
-	struct AST_BLOCK_STMT final : public AST_STMT
+	struct AstBlockStmt final : public AstStmt
 	{
-		SYMBOL_TABLE Scope;
-		AST_STMT_LIST Statements;
-		AST_BLOCK_STMT(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STMT(NK_BLOCK_STMT, start, end) {}
-		AST_BLOCK_STMT(AST_STMT_LIST stmts, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STMT(NK_BLOCK_STMT, start, end), Statements(std::move(stmts)) {}
+		SymbolTable scope;
+		AstStmtList stmts;
+		AstBlockStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_BLOCK_STMT, start, end) {}
+		AstBlockStmt(AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_BLOCK_STMT, start, end), stmts(std::move(stmts)) {}
 		AST_VISITABLE(BlockStmt)
 	};
 
-	struct AST_EMPTY_DECL final : public AST_DECL
+	struct AstEmptyDecl final : public AstDecl
 	{
-		AST_EMPTY_DECL(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, "", NK_EMPTY_DECL, start, end) {}
+		AstEmptyDecl(Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, "", NK_EMPTY_DECL, start, end) {}
 		AST_VISITABLE(EmptyDecl)
 	};
 
-	struct AST_COMMENT_DECL final : public AST_DECL
+	struct AstCommentDecl final : public AstDecl
 	{
-		std::string Text;
-		AST_COMMENT_DECL(std::string text, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, "", NK_COMMENT_DECL, start, end), Text(std::move(text)) {}
+		std::string text;
+		AstCommentDecl(std::string text, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, "", NK_COMMENT_DECL, start, end), text(std::move(text)) {}
 		AST_VISITABLE(Comment)
 	};
 
-	struct AST_USING_DECL final : public AST_DECL
+	struct AstUsingDecl final : public AstDecl
 	{
-		AST_USING_DECL(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_USING_DECL, start, end) {}
+		AstUsingDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_USING_DECL, start, end) {}
 		AST_VISITABLE(UsingDecl)
 	};
 
-	struct AST_TYPEDEF final : public AST_DECL
+	struct AstTypedef final : public AstDecl
 	{
-		AST_TYPEREF_PTR TypeRef;
-		AST_TYPEDEF(std::string name, AST_TYPEREF_PTR typeRef, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end), TypeRef(std::move(typeRef)) {}
+		AstTypeRefPtr typeRef;
+		AstTypedef(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end), typeRef(std::move(typeRef)) {}
 		AST_VISITABLE(TypeDef)
 	};
 
-	struct AST_NAMESPACE_DECL final : public AST_DECL
+	struct AstNamespaceDecl final : public AstDecl
 	{
-		AST_STMT_LIST Statements;
-		AST_NAMESPACE_DECL(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end) {}
-		AST_NAMESPACE_DECL(std::string name, AST_STMT_LIST statements, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end), Statements(std::move(statements)) {}
+		AstStmtList stmts;
+		AstNamespaceDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end) {}
+		AstNamespaceDecl(std::string name, AstStmtList statements, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end), stmts(std::move(statements)) {}
 		AST_VISITABLE(NamespaceDecl)
 	};
 
-	struct AST_VAR_DECL final : public AST_DECL
+	struct AstVarDecl final : public AstDecl
 	{
-		AST_TYPEREF_PTR TypeRef;
-		AST_EXPR_PTR InitExpr;
-		AST_VAR_DECL(std::string name, AST_TYPEREF_PTR typeRef, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_VAR_DECL, start, end), TypeRef(std::move(typeRef)) {}
-		AST_VAR_DECL(std::string name, AST_TYPEREF_PTR typeRef, AST_EXPR_PTR initExpr, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_VAR_DECL, start, end), TypeRef(std::move(typeRef)), InitExpr(std::move(initExpr)) {}
+		AstTypeRefPtr typeRef;
+		AstExprPtr initExpr;
+		AstVarDecl(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end), typeRef(std::move(typeRef)) {}
+		AstVarDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr initExpr, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end), typeRef(std::move(typeRef)), initExpr(std::move(initExpr)) {}
 		AST_VISITABLE(VarDecl)
 	};
 
-	struct AST_PARAM_DECL final : public AST_DECL
+	struct AstParamDecl final : public AstDecl
 	{
-		AST_TYPEREF_PTR TypeRef;
-		AST_EXPR_PTR DefaultExpr;
-		AST_PARAM_DECL(std::string name, AST_TYPEREF_PTR typeRef, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), TypeRef(std::move(typeRef)) {}
-		AST_PARAM_DECL(std::string name, AST_TYPEREF_PTR typeRef, AST_EXPR_PTR defaultExpr, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), TypeRef(std::move(typeRef)), DefaultExpr(std::move(defaultExpr)) {}
+		AstTypeRefPtr typeRef;
+		AstExprPtr defaultExpr;
+		AstParamDecl(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), typeRef(std::move(typeRef)) {}
+		AstParamDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr defaultExpr, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), typeRef(std::move(typeRef)), defaultExpr(std::move(defaultExpr)) {}
 		AST_VISITABLE(ParamDecl)
 	};
 
-	struct AST_FUNC_DECL final : public AST_DECL
+	struct AstFuncDecl final : public AstDecl
 	{
-		SYMBOL_TABLE Scope;
-		AST_TYPEREF_PTR TypeRef;
-		AST_DECL_LIST Parameters;
-		AST_STMT_LIST Statements;
-		AST_FUNC_DECL(std::string name, AST_TYPEREF_PTR typeRef, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_FUNC_DECL(std::move(name), std::move(typeRef), AST_DECL_LIST(), AST_STMT_LIST(), start, end) {}
-		AST_FUNC_DECL(std::string name, AST_TYPEREF_PTR typeRef, AST_DECL_LIST parameters, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_FUNC_DECL(std::move(name), std::move(typeRef), std::move(parameters), AST_STMT_LIST(), start, end) {}
-		AST_FUNC_DECL(std::string name, AST_TYPEREF_PTR typeRef, AST_DECL_LIST parameters, AST_STMT_LIST stmts, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_FUNC_DECL, start, end), TypeRef(std::move(typeRef)), Parameters(std::move(parameters)), Statements(std::move(stmts)) {}
+		SymbolTable scope;
+		AstTypeRefPtr typeRef;
+		AstDeclList params;
+		AstStmtList stmts;
+		AstFuncDecl(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
+			: AstFuncDecl(std::move(name), std::move(typeRef), AstDeclList(), AstStmtList(), start, end) {}
+		AstFuncDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, Token *start = nullptr, Token *end = nullptr)
+			: AstFuncDecl(std::move(name), std::move(typeRef), std::move(parameters), AstStmtList(), start, end) {}
+		AstFuncDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)), stmts(std::move(stmts)) {}
 		AST_VISITABLE(FuncDecl)
 	};
 
-	struct AST_DELEGATE_DECL final : public AST_DECL
+	struct AstDelegateDecl final : public AstDecl
 	{
-		SYMBOL_TABLE Scope;
-		AST_TYPEREF_PTR TypeRef;
-		AST_DECL_LIST Parameters;
-		AST_DELEGATE_DECL(std::string name, AST_TYPEREF_PTR typeRef, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), TypeRef(std::move(typeRef)) {}
-		AST_DELEGATE_DECL(std::string name, AST_TYPEREF_PTR typeRef, AST_DECL_LIST parameters, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), TypeRef(std::move(typeRef)), Parameters(std::move(parameters)) {}
+		SymbolTable scope;
+		AstTypeRefPtr typeRef;
+		AstDeclList params;
+		AstDelegateDecl(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), typeRef(std::move(typeRef)) {}
+		AstDelegateDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)) {}
 		AST_VISITABLE(DelegateDecl)
 	};
 
-	struct AST_STRUCT_DECL final : public AST_DECL
+	struct AstStructDecl final : public AstDecl
 	{
-		SYMBOL_TABLE Scope;
-		AST_TYPEREF_LIST BaseTypes;
-		AST_DECL_LIST Members;
-		AST_STRUCT_DECL(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STRUCT_DECL(std::move(name), AST_TYPEREF_LIST(), AST_DECL_LIST(), start, end) {}
-		AST_STRUCT_DECL(std::string name, AST_TYPEREF_LIST bases, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STRUCT_DECL(std::move(name), std::move(bases), AST_DECL_LIST(), start, end) {}
-		AST_STRUCT_DECL(std::string name, AST_DECL_LIST members, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_STRUCT_DECL(std::move(name), AST_TYPEREF_LIST(), std::move(members), start, end) {}
-		AST_STRUCT_DECL(std::string name, AST_TYPEREF_LIST bases, AST_DECL_LIST members, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end), BaseTypes(std::move(bases)), Members(std::move(members)) {}
+		SymbolTable scope;
+		AstTypeRefList baseTypes;
+		AstDeclList members;
+		AstStructDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstStructDecl(std::move(name), AstTypeRefList(), AstDeclList(), start, end) {}
+		AstStructDecl(std::string name, AstTypeRefList bases, Token *start = nullptr, Token *end = nullptr)
+			: AstStructDecl(std::move(name), std::move(bases), AstDeclList(), start, end) {}
+		AstStructDecl(std::string name, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+			: AstStructDecl(std::move(name), AstTypeRefList(), std::move(members), start, end) {}
+		AstStructDecl(std::string name, AstTypeRefList bases, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end), baseTypes(std::move(bases)), members(std::move(members)) {}
 		AST_VISITABLE(StructDecl)
 	};
 
-	struct AST_ENUMERATOR_DECL final : public AST_DECL
+	struct AstEnumeratorDecl final : public AstDecl
 	{
-		AST_EXPR_PTR Value;
-		AST_ENUMERATOR_DECL(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end) {}
-		AST_ENUMERATOR_DECL(std::string name, AST_EXPR_PTR value, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end), Value(std::move(value)) {}
+		AstExprPtr value;
+		AstEnumeratorDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end) {}
+		AstEnumeratorDecl(std::string name, AstExprPtr value, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end), value(std::move(value)) {}
 		AST_VISITABLE(EnumeratorDecl)
 	};
 
-	typedef std::unique_ptr<AST_ENUMERATOR_DECL> AST_ENUMERATOR_DECL_PTR;
-	typedef std::vector<AST_ENUMERATOR_DECL_PTR> AST_ENUMERATOR_LIST;
+	typedef std::unique_ptr<AstEnumeratorDecl> AstEnumeratorDeclPtr;
+	typedef std::vector<AstEnumeratorDeclPtr> AstEnumeratorList;
 
-	struct AST_ENUM_DECL final : public AST_DECL
+	struct AstEnumDecl final : public AstDecl
 	{
-		SYMBOL_TABLE Scope;
-		AST_ENUMERATOR_LIST Enumerators;
-		AST_DECL_LIST Members;
-		AST_ENUM_DECL(std::string name, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_ENUM_DECL(std::move(name), AST_ENUMERATOR_LIST(), AST_DECL_LIST(), start, end) {}
-		AST_ENUM_DECL(std::string name, AST_ENUMERATOR_LIST enumerators, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_ENUM_DECL(std::move(name), std::move(enumerators), AST_DECL_LIST(), start, end) {}
-		AST_ENUM_DECL(std::string name, AST_DECL_LIST members, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_ENUM_DECL(std::move(name), AST_ENUMERATOR_LIST(), std::move(members), start, end) {}
-		AST_ENUM_DECL(std::string name, AST_ENUMERATOR_LIST enumerators, AST_DECL_LIST members, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_DECL(DF_NONE, std::move(name), NK_ENUM_DECL, start, end), Enumerators(std::move(enumerators)), Members(std::move(members)) {}
+		SymbolTable scope;
+		AstEnumeratorList enumerators;
+		AstDeclList members;
+		AstEnumDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
+			: AstEnumDecl(std::move(name), AstEnumeratorList(), AstDeclList(), start, end) {}
+		AstEnumDecl(std::string name, AstEnumeratorList enumerators, Token *start = nullptr, Token *end = nullptr)
+			: AstEnumDecl(std::move(name), std::move(enumerators), AstDeclList(), start, end) {}
+		AstEnumDecl(std::string name, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+			: AstEnumDecl(std::move(name), AstEnumeratorList(), std::move(members), start, end) {}
+		AstEnumDecl(std::string name, AstEnumeratorList enumerators, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+			: AstDecl(DF_NONE, std::move(name), NK_ENUM_DECL, start, end), enumerators(std::move(enumerators)), members(std::move(members)) {}
 		AST_VISITABLE(EnumDecl)
 	};
 
-	struct AST_MODULE final : public AST_NODE
+	struct AstModule final : public AstNode
 	{
-		AST_DECL_LIST Members;
-		AST_MODULE(TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_MODULE, start, end) {}
-		AST_MODULE(AST_DECL_LIST members, TOKEN *start = nullptr, TOKEN *end = nullptr)
-			: AST_NODE(NK_MODULE, start, end), Members(std::move(members)) {}
+		AstDeclList members;
+		AstModule(Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_MODULE, start, end) {}
+		AstModule(AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+			: AstNode(NK_MODULE, start, end), members(std::move(members)) {}
 		AST_VISITABLE(Module)
 	};
 
-} // namespace SODA
+} // namespace Soda

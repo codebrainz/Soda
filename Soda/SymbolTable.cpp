@@ -2,31 +2,31 @@
 #include "Ast.h"
 #include <cassert>
 
-namespace SODA
+namespace Soda
 {
 
-	SYMBOL_TABLE::SYMBOL_TABLE(SYMBOL_TABLE *parent)
-		: Parent(parent)
+	SymbolTable::SymbolTable(SymbolTable *parent)
+		: parent(parent)
 	{
 	}
 
-	bool SYMBOL_TABLE::Define(SYMBOL_KIND kind, AST_DECL *decl)
+	bool SymbolTable::define(SymbolKind kind, AstDecl *decl)
 	{
 		assert(decl);
-		if (IsDefined(decl->Name, false))
+		if (isDefined(decl->name, false))
 			return false;
-		Table.emplace(decl->Name, std::make_unique<SYMBOL>(kind, decl));
+		table.emplace(decl->name, std::make_unique<Symbol>(kind, decl));
 		return true;
 	}
 
-	SYMBOL *SYMBOL_TABLE::Lookup(const std::string &name, bool rec)
+	Symbol *SymbolTable::lookup(const std::string &name, bool rec)
 	{
-		auto found = Table.find(name);
-		if (found != Table.end())
+		auto found = table.find(name);
+		if (found != table.end())
 			return found->second.get();
-		else if (rec && Parent)
-			return Parent->Lookup(name, rec);
+		else if (rec && parent)
+			return parent->lookup(name, rec);
 		return nullptr;
 	}
 
-} // namespace SODA
+} // namespace Soda

@@ -1,70 +1,70 @@
 #pragma once
 
-namespace SODA
+namespace Soda
 {
 
-	struct AST_AMBIGUITY;
-	struct AST_NIL;
-	struct AST_BOOL;
-	struct AST_INT;
-	struct AST_FLOAT;
-	struct AST_CHAR;
-	struct AST_STRING;
-	struct AST_IDENTIFIER;
-	struct AST_UNARY;
-	struct AST_BINARY;
-	struct AST_TYPEREF;
-	struct AST_CAST;
-	struct AST_EMPTY_STMT;
-	struct AST_COMMENT_STMT;
-	struct AST_EXPR_STMT;
-	struct AST_BLOCK_STMT;
-	struct AST_EMPTY_DECL;
-	struct AST_COMMENT_DECL;
-	struct AST_USING_DECL;
-	struct AST_TYPEDEF;
-	struct AST_NAMESPACE_DECL;
-	struct AST_VAR_DECL;
-	struct AST_PARAM_DECL;
-	struct AST_FUNC_DECL;
-	struct AST_DELEGATE_DECL;
-	struct AST_STRUCT_DECL;
-	struct AST_ENUMERATOR_DECL;
-	struct AST_ENUM_DECL;
-	struct AST_MODULE;
+	struct AstAmbiguity;
+	struct AstNil;
+	struct AstBool;
+	struct AstInt;
+	struct AstFloat;
+	struct AstChar;
+	struct AstString;
+	struct AstIdentifier;
+	struct AstUnary;
+	struct AstBinary;
+	struct AstTypeRef;
+	struct AstCast;
+	struct AstEmptyStmt;
+	struct AstCommentStmt;
+	struct AstExprStmt;
+	struct AstBlockStmt;
+	struct AstEmptyDecl;
+	struct AstCommentDecl;
+	struct AstUsingDecl;
+	struct AstTypedef;
+	struct AstNamespaceDecl;
+	struct AstVarDecl;
+	struct AstParamDecl;
+	struct AstFuncDecl;
+	struct AstDelegateDecl;
+	struct AstStructDecl;
+	struct AstEnumeratorDecl;
+	struct AstEnumDecl;
+	struct AstModule;
 
-	class AST_VISITOR
+	class AstVisitor
 	{
 	public:
-		virtual void visit(AST_AMBIGUITY&) {}
-		virtual void visit(AST_NIL&) {}
-		virtual void visit(AST_BOOL&) {}
-		virtual void visit(AST_INT&) {}
-		virtual void visit(AST_FLOAT&) {}
-		virtual void visit(AST_CHAR&) {}
-		virtual void visit(AST_STRING&) {}
-		virtual void visit(AST_IDENTIFIER&) {}
-		virtual void visit(AST_UNARY&) {}
-		virtual void visit(AST_BINARY&) {}
-		virtual void visit(AST_TYPEREF&) {}
-		virtual void visit(AST_CAST&) {}
-		virtual void visit(AST_EMPTY_STMT&) {}
-		virtual void visit(AST_COMMENT_STMT&) {}
-		virtual void visit(AST_EXPR_STMT&) {}
-		virtual void visit(AST_BLOCK_STMT&) {}
-		virtual void visit(AST_EMPTY_DECL&) {}
-		virtual void visit(AST_COMMENT_DECL&) {}
-		virtual void visit(AST_USING_DECL&) {}
-		virtual void visit(AST_TYPEDEF&) {}
-		virtual void visit(AST_NAMESPACE_DECL&) {}
-		virtual void visit(AST_VAR_DECL&) {}
-		virtual void visit(AST_PARAM_DECL&) {}
-		virtual void visit(AST_FUNC_DECL&) {}
-		virtual void visit(AST_DELEGATE_DECL&) {}
-		virtual void visit(AST_STRUCT_DECL&) {}
-		virtual void visit(AST_ENUMERATOR_DECL&) {}
-		virtual void visit(AST_ENUM_DECL&) {}
-		virtual void visit(AST_MODULE&) {}
+		virtual void visit(AstAmbiguity&) {}
+		virtual void visit(AstNil&) {}
+		virtual void visit(AstBool&) {}
+		virtual void visit(AstInt&) {}
+		virtual void visit(AstFloat&) {}
+		virtual void visit(AstChar&) {}
+		virtual void visit(AstString&) {}
+		virtual void visit(AstIdentifier&) {}
+		virtual void visit(AstUnary&) {}
+		virtual void visit(AstBinary&) {}
+		virtual void visit(AstTypeRef&) {}
+		virtual void visit(AstCast&) {}
+		virtual void visit(AstEmptyStmt&) {}
+		virtual void visit(AstCommentStmt&) {}
+		virtual void visit(AstExprStmt&) {}
+		virtual void visit(AstBlockStmt&) {}
+		virtual void visit(AstEmptyDecl&) {}
+		virtual void visit(AstCommentDecl&) {}
+		virtual void visit(AstUsingDecl&) {}
+		virtual void visit(AstTypedef&) {}
+		virtual void visit(AstNamespaceDecl&) {}
+		virtual void visit(AstVarDecl&) {}
+		virtual void visit(AstParamDecl&) {}
+		virtual void visit(AstFuncDecl&) {}
+		virtual void visit(AstDelegateDecl&) {}
+		virtual void visit(AstStructDecl&) {}
+		virtual void visit(AstEnumeratorDecl&) {}
+		virtual void visit(AstEnumDecl&) {}
+		virtual void visit(AstModule&) {}
 	};
 
-} // namespace SODA
+} // namespace Soda
