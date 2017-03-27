@@ -255,6 +255,10 @@ namespace Soda
 			: AstNode(NK_TYPEREF, start, end), name(std::move(name)), typeFlags(typeFlags) {}
 		AstTypeRef(std::unique_ptr<AstTypeRef> refType, TypeFlags typeFlags = TF_NONE, Token *start = nullptr, Token *end = nullptr)
 			: AstNode(NK_TYPEREF, start, end), refType(std::move(refType)), typeFlags(typeFlags) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			if (refType)
+				refType->accept(v);
+		}
 		AST_VISITABLE(TypeRef)
 	};
 
@@ -342,6 +346,10 @@ namespace Soda
 		AstTypeRefPtr typeRef;
 		AstTypedef(std::string name, AstTypeRefPtr typeRef, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end), typeRef(std::move(typeRef)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			if (typeRef)
+				typeRef->accept(v);
+		}
 		AST_VISITABLE(TypeDef)
 	};
 
@@ -368,6 +376,8 @@ namespace Soda
 		AstVarDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr initExpr, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end), typeRef(std::move(typeRef)), initExpr(std::move(initExpr)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
+			if (typeRef)
+				typeRef->accept(v);
 			if (initExpr)
 				initExpr->accept(v);
 		}
@@ -383,6 +393,8 @@ namespace Soda
 		AstParamDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr defaultExpr, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), typeRef(std::move(typeRef)), defaultExpr(std::move(defaultExpr)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
+			if (typeRef)
+				typeRef->accept(v);
 			if (defaultExpr)
 				defaultExpr->accept(v);
 		}
@@ -402,6 +414,8 @@ namespace Soda
 		AstFuncDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)), stmts(std::move(stmts)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
+			if (typeRef)
+				typeRef->accept(v);
 			for (auto &param : params)
 				param->accept(v);
 			for (auto &stmt : stmts)
@@ -420,6 +434,8 @@ namespace Soda
 		AstDelegateDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
+			if (typeRef)
+				typeRef->accept(v);
 			for (auto &param : params)
 				param->accept(v);
 		}
@@ -440,6 +456,8 @@ namespace Soda
 		AstStructDecl(std::string name, AstTypeRefList bases, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end), baseTypes(std::move(bases)), members(std::move(members)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &base : baseTypes)
+				base->accept(v);
 			for (auto &member : members)
 				member->accept(v);
 		}

@@ -1,4 +1,4 @@
 int main()
 {
-    int x = 1;
+    const int *const x = 1;
 }

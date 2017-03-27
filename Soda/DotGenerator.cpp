@@ -37,6 +37,24 @@ namespace Soda
 			n.acceptChildren(*this);
 		}
 
+		void handleTypeRefNode(AstTypeRef &n)
+		{
+			auto id = idTable.nodeId(n);
+			os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id << ")";
+			if (n.typeFlags != TF_NONE)
+				os << "\\n";
+			if (n.typeFlags & TF_ARRAY)
+				os << "a ";
+			if (n.typeFlags & TF_CONST)
+				os << "c ";
+			if (n.typeFlags & TF_POINTER)
+				os << "p";
+			if (!n.name.empty())
+				os << "\\n" << n.name;
+			os << "\"];\n";
+			n.acceptChildren(*this);
+		}
+
 		virtual void visit(AstAmbiguity &n) override final { handleNode(n); }
 		virtual void visit(AstNil &n) override final { handleNode(n); }
 		virtual void visit(AstBool &n) override final { handleNode(n); }
@@ -47,7 +65,7 @@ namespace Soda
 		virtual void visit(AstIdentifier &n) override final { handleNode(n); }
 		virtual void visit(AstUnary &n) override final { handleNode(n); }
 		virtual void visit(AstBinary &n) override final { handleNode(n); }
-		virtual void visit(AstTypeRef &n) override final { handleNode(n); }
+		virtual void visit(AstTypeRef &n) override final { handleTypeRefNode(n); }
 		virtual void visit(AstCast &n) override final { handleNode(n); }
 		virtual void visit(AstEmptyStmt &n) override final { handleNode(n); }
 		virtual void visit(AstCommentStmt &n) override final { handleNode(n); }
