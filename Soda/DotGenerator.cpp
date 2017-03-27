@@ -21,14 +21,14 @@ namespace Soda
 		}
 	};
 
-	struct DotNodeGenerator : public AstVisitor
+	struct DotNodeGenerator : public AstDefaultVisitor
 	{
 		std::ostream &os;
 		DotIdTable &idTable;
 		DotNodeGenerator(std::ostream &os, DotIdTable &idTable) : os(os), idTable(idTable) {}
 	};
 
-	struct DotEdgeGenerator : public AstVisitor
+	struct DotEdgeGenerator : public AstDefaultVisitor
 	{
 		std::ostream &os;
 		DotIdTable &idTable;
