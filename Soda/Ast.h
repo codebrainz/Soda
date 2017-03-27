@@ -52,6 +52,7 @@ namespace Soda
 			: kind(kind), start(start), end(end) {}
 		~AstNode() {}
 		virtual void accept(AstVisitor&) = 0;
+		virtual void acceptChildren(AstVisitor&) {}
 		virtual const std::string &kindName() const = 0;
 	};
 
@@ -106,6 +107,10 @@ namespace Soda
 			: AstNode(NK_AMBIGUITY, start, end) {}
 		AstAmbiguity(AstNodeList alternatives, Token *start = nullptr, Token *end = nullptr)
 			: AstNode(NK_AMBIGUITY, start, end), alternatives(std::move(alternatives)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &alt : alternatives)
+				alt->accept(v);
+		}
 		AST_VISITABLE(Ambiguity)
 	};
 
@@ -182,6 +187,9 @@ namespace Soda
 		AstExprPtr operand;
 		AstUnary(UnaryOperator op, AstExprPtr operand, Token *start = nullptr, Token *end = nullptr)
 			: AstExpr(NK_UNARY, start, end), op(op), operand(std::move(operand)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			operand->accept(v);
+		}
 		AST_VISITABLE(Unary)
 	};
 
@@ -223,6 +231,10 @@ namespace Soda
 		AstExprPtr right;
 		AstBinary(BinaryOperator op, AstExprPtr left, AstExprPtr right, Token *start = nullptr, Token *end = nullptr)
 			: AstExpr(NK_BINARY, start, end), op(op), left(std::move(left)), right(std::move(right)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			left->accept(v);
+			right->accept(v);
+		}
 		AST_VISITABLE(Binary)
 	};
 
@@ -255,6 +267,10 @@ namespace Soda
 		AstExprPtr expr;
 		AstCast(AstTypeRefPtr typeRef, AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
 			: AstExpr(NK_CAST, start, end), typeRef(std::move(typeRef)), expr(std::move(expr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			typeRef->accept(v);
+			expr->accept(v);
+		}
 		AST_VISITABLE(Cast)
 	};
 
@@ -278,6 +294,9 @@ namespace Soda
 		AstExprPtr expr;
 		AstExprStmt(AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
 			: AstStmt(NK_EXPR_STMT, start, end), expr(std::move(expr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			expr->accept(v);
+		}
 		AST_VISITABLE(ExprStmt)
 	};
 
@@ -289,6 +308,10 @@ namespace Soda
 			: AstStmt(NK_BLOCK_STMT, start, end) {}
 		AstBlockStmt(AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
 			: AstStmt(NK_BLOCK_STMT, start, end), stmts(std::move(stmts)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &stmt : stmts)
+				stmt->accept(v);
+		}
 		AST_VISITABLE(BlockStmt)
 	};
 
@@ -329,6 +352,10 @@ namespace Soda
 			: AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end) {}
 		AstNamespaceDecl(std::string name, AstStmtList statements, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end), stmts(std::move(statements)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &stmt : stmts)
+				stmt->accept(v);
+		}
 		AST_VISITABLE(NamespaceDecl)
 	};
 
@@ -340,6 +367,10 @@ namespace Soda
 			: AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end), typeRef(std::move(typeRef)) {}
 		AstVarDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr initExpr, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end), typeRef(std::move(typeRef)), initExpr(std::move(initExpr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			if (initExpr)
+				initExpr->accept(v);
+		}
 		AST_VISITABLE(VarDecl)
 	};
 
@@ -351,6 +382,10 @@ namespace Soda
 			: AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), typeRef(std::move(typeRef)) {}
 		AstParamDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr defaultExpr, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end), typeRef(std::move(typeRef)), defaultExpr(std::move(defaultExpr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			if (defaultExpr)
+				defaultExpr->accept(v);
+		}
 		AST_VISITABLE(ParamDecl)
 	};
 
@@ -366,6 +401,12 @@ namespace Soda
 			: AstFuncDecl(std::move(name), std::move(typeRef), std::move(parameters), AstStmtList(), start, end) {}
 		AstFuncDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)), stmts(std::move(stmts)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &param : params)
+				param->accept(v);
+			for (auto &stmt : stmts)
+				stmt->accept(v);
+		}
 		AST_VISITABLE(FuncDecl)
 	};
 
@@ -378,6 +419,10 @@ namespace Soda
 			: AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), typeRef(std::move(typeRef)) {}
 		AstDelegateDecl(std::string name, AstTypeRefPtr typeRef, AstDeclList parameters, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end), typeRef(std::move(typeRef)), params(std::move(parameters)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &param : params)
+				param->accept(v);
+		}
 		AST_VISITABLE(DelegateDecl)
 	};
 
@@ -394,6 +439,10 @@ namespace Soda
 			: AstStructDecl(std::move(name), AstTypeRefList(), std::move(members), start, end) {}
 		AstStructDecl(std::string name, AstTypeRefList bases, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end), baseTypes(std::move(bases)), members(std::move(members)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &member : members)
+				member->accept(v);
+		}
 		AST_VISITABLE(StructDecl)
 	};
 
@@ -404,6 +453,10 @@ namespace Soda
 			: AstDecl(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end) {}
 		AstEnumeratorDecl(std::string name, AstExprPtr value, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end), value(std::move(value)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			if (value)
+				value->accept(v);
+		}
 		AST_VISITABLE(EnumeratorDecl)
 	};
 
@@ -423,6 +476,12 @@ namespace Soda
 			: AstEnumDecl(std::move(name), AstEnumeratorList(), std::move(members), start, end) {}
 		AstEnumDecl(std::string name, AstEnumeratorList enumerators, AstDeclList members, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_ENUM_DECL, start, end), enumerators(std::move(enumerators)), members(std::move(members)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &etor : enumerators)
+				etor->accept(v);
+			for (auto &member : members)
+				member->accept(v);
+		}
 		AST_VISITABLE(EnumDecl)
 	};
 
@@ -433,6 +492,10 @@ namespace Soda
 			: AstNode(NK_MODULE, start, end) {}
 		AstModule(AstDeclList members, Token *start = nullptr, Token *end = nullptr)
 			: AstNode(NK_MODULE, start, end), members(std::move(members)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			for (auto &member : members)
+				member->accept(v);
+		}
 		AST_VISITABLE(Module)
 	};
 
