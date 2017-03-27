@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Ast.h"
 #include "Logger.h"
+#include "Parser.h"
 #include "SourceFile.h"
 #include "SymbolTable.h"
 #include "Tokenizer.h"
@@ -19,11 +21,24 @@ namespace Soda
 			sourceFiles.emplace_back(*this, fn);
 		}
 
-		void tokenize()
+		void extendTokens(TokenList &toks)
 		{
-			tokens.clear();
+			tokens.reserve(tokens.size() + toks.size());
+			for (auto &tok : toks)
+				tokens.push_back(std::move(tok));
+		}
+
+		std::vector<std::unique_ptr<AstModule>> parse()
+		{
+			std::vector<std::unique_ptr<AstModule>> modules;
 			for (auto &sourceFile : sourceFiles)
+			{
+				TokenList tokens;
 				sourceFile.tokenize(tokens);
+				modules.emplace_back(parseTokens(*this, tokens));
+				extendTokens(tokens);
+			}
+			return modules;
 		}
 
 		const TokenList &getTokens() const

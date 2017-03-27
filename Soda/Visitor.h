@@ -70,35 +70,35 @@ namespace Soda
 	class AstDefaultVisitor : public AstVisitor
 	{
 	public:
-		virtual void visit(AstAmbiguity &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstNil &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstBool &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstInt &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstFloat &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstChar &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstString &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstIdentifier &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstUnary &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstBinary &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstTypeRef &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstCast &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstEmptyStmt &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstCommentStmt &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstExprStmt &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstBlockStmt &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstEmptyDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstCommentDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstUsingDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstTypedef &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstNamespaceDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstVarDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstParamDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstFuncDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstDelegateDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstStructDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstEnumeratorDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstEnumDecl &n) override { n.acceptChildren(*this); }
-		virtual void visit(AstModule &n) override { n.acceptChildren(*this); }
+		virtual void visit(AstAmbiguity &n) override;
+		virtual void visit(AstNil &n) override;
+		virtual void visit(AstBool &n) override;
+		virtual void visit(AstInt &n) override;
+		virtual void visit(AstFloat &n) override;
+		virtual void visit(AstChar &n) override;
+		virtual void visit(AstString &n) override;
+		virtual void visit(AstIdentifier &n) override;
+		virtual void visit(AstUnary &n) override;
+		virtual void visit(AstBinary &n) override;
+		virtual void visit(AstTypeRef &n) override;
+		virtual void visit(AstCast &n) override;
+		virtual void visit(AstEmptyStmt &n) override;
+		virtual void visit(AstCommentStmt &n) override;
+		virtual void visit(AstExprStmt &n) override;
+		virtual void visit(AstBlockStmt &n) override;
+		virtual void visit(AstEmptyDecl &n) override;
+		virtual void visit(AstCommentDecl &n) override;
+		virtual void visit(AstUsingDecl &n) override;
+		virtual void visit(AstTypedef &n) override;
+		virtual void visit(AstNamespaceDecl &n) override;
+		virtual void visit(AstVarDecl &n) override;
+		virtual void visit(AstParamDecl &n) override;
+		virtual void visit(AstFuncDecl &n) override;
+		virtual void visit(AstDelegateDecl &n) override;
+		virtual void visit(AstStructDecl &n) override;
+		virtual void visit(AstEnumeratorDecl &n) override;
+		virtual void visit(AstEnumDecl &n) override;
+		virtual void visit(AstModule &n) override;
 	};
 
 } // namespace Soda

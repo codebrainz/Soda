@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Ast.h"
-#include <memory>
 #include <ostream>
 
 namespace Soda
 {
+	struct AstNode;
 
-	void generateDot(std::unique_ptr<AstModule> &m, std::ostream &os);
+	void generateDot(AstNode &node, std::ostream &os);
 
 } // namespace Soda
