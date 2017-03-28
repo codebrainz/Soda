@@ -285,7 +285,10 @@ namespace Soda
 					nextChar();
 				} while (isDecimal() || chr == '.');
 				token.end = offset;
-				token.kind = TK_FLOAT;
+				if (isFloat)
+					token.kind = TK_FLOAT;
+				else
+					token.kind = TK_INT;
 				return token.kind;
 			}
 		}

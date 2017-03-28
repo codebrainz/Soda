@@ -100,18 +100,18 @@ namespace Soda
 	typedef std::vector<AstStmtPtr> AstStmtList;
 	typedef std::vector<AstDeclPtr> AstDeclList;
 
-	struct AstAmbiguity final : public AstNode
+	struct AstAmbiguityStmt final : public AstStmt
 	{
 		AstNodeList alternatives;
-		AstAmbiguity(Token *start = nullptr, Token *end = nullptr)
-			: AstNode(NK_AMBIGUITY, start, end) {}
-		AstAmbiguity(AstNodeList alternatives, Token *start = nullptr, Token *end = nullptr)
-			: AstNode(NK_AMBIGUITY, start, end), alternatives(std::move(alternatives)) {}
+		AstAmbiguityStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_AMBIGUITY, start, end) {}
+		AstAmbiguityStmt(AstNodeList alternatives, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_AMBIGUITY, start, end), alternatives(std::move(alternatives)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
 			for (auto &alt : alternatives)
 				alt->accept(v);
 		}
-		AST_VISITABLE(Ambiguity)
+		AST_VISITABLE(AmbiguityStmt)
 	};
 
 	struct AstNil final : public AstExpr
@@ -179,6 +179,7 @@ namespace Soda
 		UOP_POSTDEC,
 		UOP_COMPL,
 		UOP_NOT,
+		UOP_DEREF,
 	};
 
 	struct AstUnary final : public AstExpr

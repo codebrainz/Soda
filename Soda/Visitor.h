@@ -3,7 +3,7 @@
 namespace Soda
 {
 
-	struct AstAmbiguity;
+	struct AstAmbiguityStmt;
 	struct AstNil;
 	struct AstBool;
 	struct AstInt;
@@ -36,7 +36,7 @@ namespace Soda
 	class AstVisitor
 	{
 	public:
-		virtual void visit(AstAmbiguity&) = 0;
+		virtual void visit(AstAmbiguityStmt&) = 0;
 		virtual void visit(AstNil&) = 0;
 		virtual void visit(AstBool&) = 0;
 		virtual void visit(AstInt&) = 0;
@@ -70,7 +70,7 @@ namespace Soda
 	class AstDefaultVisitor : public AstVisitor
 	{
 	public:
-		virtual void visit(AstAmbiguity &n) override;
+		virtual void visit(AstAmbiguityStmt &n) override;
 		virtual void visit(AstNil &n) override;
 		virtual void visit(AstBool &n) override;
 		virtual void visit(AstInt &n) override;

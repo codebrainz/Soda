@@ -143,26 +143,89 @@ namespace Soda
 			}
 		}
 
-		AstExprPtr parseExpr()
-		{
-			return parsePrimaryExpr();
-		}
-
-		AstStmtPtr parseStmt()
+		AstExprPtr parsePrefixExpr()
 		{
 			auto startToken = currentToken();
-			if (auto stmt = parseTopLevel())
-				return stmt;
-			else if (auto expr = parseExpr()) 
+			if (accept('*'))
 			{
-				auto endToken = currentToken();
-				if (!expect(';'))
-					return nullptr;
-				return std::make_unique<AstExprStmt>(std::move(expr), startToken, endToken);
+				auto expr = parsePrefixExpr();
+				auto endToken = expr->end;
+				return std::make_unique<AstUnary>(UOP_DEREF, std::move(expr), startToken, endToken);
 			}
-			return nullptr;
+			else
+			{
+				return parsePrimaryExpr();
+			}
 		}
-		
+
+		AstExprPtr parseCastExpr();
+
+		AstExprPtr parseMultiplicativeExpr()
+		{
+			auto startToken = currentToken();
+			auto lhs = parseCastExpr();
+			while (true)
+			{
+				if (accept('*'))
+				{
+					auto rhs = parseCastExpr();
+					lhs = std::make_unique<AstBinary>(BOP_MUL, std::move(lhs), std::move(rhs), startToken, rhs->end);
+					startToken = currentToken();
+				}
+				else if (accept('/'))
+				{
+					auto rhs = parseCastExpr();
+					lhs = std::make_unique<AstBinary>(BOP_DIV, std::move(lhs), std::move(rhs), startToken, rhs->end);
+					startToken = currentToken();
+				}
+				else if (accept('%'))
+				{
+					auto rhs = parseCastExpr();
+					lhs = std::make_unique<AstBinary>(BOP_MOD, std::move(lhs), std::move(rhs), startToken, rhs->end);
+					startToken = currentToken();
+				}
+				else
+				{
+					break;
+				}
+			}
+			return lhs;
+		}
+
+		AstExprPtr parseAdditiveExpr()
+		{
+			auto startToken = currentToken();
+			auto lhs = parseMultiplicativeExpr();
+			while (true)
+			{
+				if (accept('+'))
+				{
+					auto rhs = parseMultiplicativeExpr();
+					lhs = std::make_unique<AstBinary>(BOP_ADD, std::move(lhs), std::move(rhs), startToken, rhs->end);
+					startToken = currentToken();
+				}
+				else if (accept('-'))
+				{
+					auto rhs = parseMultiplicativeExpr();
+					lhs = std::make_unique<AstBinary>(BOP_SUB, std::move(lhs), std::move(rhs), startToken, rhs->end);
+					startToken = currentToken();
+				}
+				else
+				{
+					break;
+				}
+			}
+			return lhs;
+		}
+
+		AstExprPtr parseExpr()
+		{
+			return parseAdditiveExpr();
+		}
+
+		AstStmtPtr parseAmbiguousMulExprVarDecl(bool &isExpr);
+		AstStmtPtr parseExprStmt();
+		AstStmtPtr parseLocalStmt();		
 		AstTypeRefPtr parseTypeRef();
 		AstDeclPtr parseTypeDef();
 		AstDeclPtr parseVarOrFuncDef();
@@ -191,7 +254,140 @@ namespace Soda
 				cancelled = true;
 			}
 		}
-	};
+	};	
+
+	AstExprPtr Parser::parseCastExpr()
+	{
+		auto startToken = currentToken();
+
+		// (int) expr
+		{
+			BackTracker bt(*this);
+			if (accept('('))
+			{
+				auto typeName = tokenText();
+				if (accept(TK_IDENT))
+				{
+					if (accept(')'))
+					{
+						if (auto expr = parseExpr())
+						{
+							auto endToken = currentToken();
+							auto type = std::make_unique<AstTypeRef>(std::move(typeName), TF_NONE);
+							bt.cancel();
+							return std::make_unique<AstCast>(std::move(type), std::move(expr), startToken, endToken);
+						}
+					}
+				}
+			}
+		}
+
+		// (const int*) expr // etc...
+		{
+			BackTracker bt(*this);
+			if (accept('('))
+			{
+				if (auto typeRef = parseTypeRef())
+				{
+					if (accept(')'))
+					{
+						if (auto expr = parseExpr())
+						{
+							auto endToken = currentToken();
+							bt.cancel();
+							return std::make_unique<AstCast>(std::move(typeRef), std::move(expr), startToken, endToken);
+						}
+					}
+				}
+			}
+		}
+
+		return parsePrefixExpr();
+	}
+
+	AstStmtPtr Parser::parseAmbiguousMulExprVarDecl(bool &isAmbiguous)
+	{
+		BackTracker bt(*this);
+		auto startToken = currentToken();
+		auto typeName = tokenText();
+		if (accept(TK_IDENT))
+		{
+			if (accept('*'))
+			{
+				auto name = tokenText();
+				if (accept(TK_IDENT))
+				{
+					// int * x = ...;
+					if (accept('='))
+					{
+						auto initExpr = parseExpr();
+						auto endToken = currentToken();
+						if (!expect(';'))
+							return nullptr;
+						auto innerType = std::make_unique<AstTypeRef>(typeName, TF_NONE);
+						auto ptrType = std::make_unique<AstTypeRef>(std::move(innerType), TF_POINTER);
+						bt.cancel();
+						return std::make_unique<AstVarDecl>(std::move(name), std::move(ptrType), std::move(initExpr), startToken, endToken);
+					}
+					// int * x;
+					else if (currentToken()->kind == ';')
+					{
+						auto endToken = currentToken();
+						if (!expect(';'))
+							return nullptr;
+						auto innerType = std::make_unique<AstTypeRef>(typeName, TF_NONE);
+						auto ptrType = std::make_unique<AstTypeRef>(std::move(innerType), TF_POINTER);
+						isAmbiguous = true;
+						return std::make_unique<AstVarDecl>(std::move(name), std::move(ptrType), startToken, endToken);
+					}
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	AstStmtPtr Parser::parseExprStmt()
+	{
+		auto startToken = currentToken();
+		if (auto expr = parseExpr())
+		{
+			auto endToken = currentToken();
+			if (!expect(';'))
+				return nullptr;
+			return std::make_unique<AstExprStmt>(std::move(expr), startToken, endToken);
+		}
+		return nullptr;
+	}
+	
+	AstStmtPtr Parser::parseLocalStmt()
+	{
+		auto startToken = currentToken();
+		
+		if (currentToken()->kind == TK_IDENT)
+		{
+			bool isAmbiguous = false;
+			if (auto varDecl = parseAmbiguousMulExprVarDecl(isAmbiguous))
+			{
+				if (!isAmbiguous)
+					return varDecl;
+				else
+				{
+					auto exprStmt = parseExprStmt();
+					assert(exprStmt);
+					auto ambigStmt = std::make_unique<AstAmbiguityStmt>(startToken, exprStmt->end);
+					ambigStmt->alternatives.push_back(std::move(varDecl));
+					ambigStmt->alternatives.push_back(std::move(exprStmt));
+					return ambigStmt;
+				}
+			}
+		}
+
+		if (auto stmt = parseTopLevel())
+			return stmt;
+		else if (auto expr = parseExprStmt())
+			return stmt;
+		return nullptr;
+	}
 
 	AstTypeRefPtr Parser::parseTypeRef()
 	{
@@ -297,7 +493,7 @@ namespace Soda
 			{
 				while (true)
 				{
-					if (auto stmt = parseStmt())
+					if (auto stmt = parseLocalStmt())
 					{
 						if (!isIgnored(stmt))
 							stmts.push_back(std::move(stmt));

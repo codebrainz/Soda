@@ -55,7 +55,7 @@ namespace Soda
 			n.acceptChildren(*this);
 		}
 
-		virtual void visit(AstAmbiguity &n) override final { handleNode(n); }
+		virtual void visit(AstAmbiguityStmt &n) override final { handleNode(n); }
 		virtual void visit(AstNil &n) override final { handleNode(n); }
 		virtual void visit(AstBool &n) override final { handleNode(n); }
 		virtual void visit(AstInt &n) override final { handleNode(n); }
@@ -111,7 +111,7 @@ namespace Soda
 			nodeStack.pop_back();
 		}
 
-		virtual void visit(AstAmbiguity &n) override final { handleEdge(n); }
+		virtual void visit(AstAmbiguityStmt &n) override final { handleEdge(n); }
 		virtual void visit(AstNil &n) override final { handleEdge(n); }
 		virtual void visit(AstBool &n) override final { handleEdge(n); }
 		virtual void visit(AstInt &n) override final { handleEdge(n); }
