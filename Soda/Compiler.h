@@ -2,8 +2,11 @@
 
 #include "Ast.h"
 #include "Logger.h"
+#include "NameMangler.h"
 #include "Parser.h"
+#include "ScopeBuilder.h"
 #include "SourceFile.h"
+#include "SymbolResolver.h"
 #include "SymbolTable.h"
 #include "Tokenizer.h"
 #include <iostream>
@@ -21,24 +24,26 @@ namespace Soda
 			sourceFiles.emplace_back(*this, fn);
 		}
 
-		void extendTokens(TokenList &toks)
+		bool parse()
 		{
-			tokens.reserve(tokens.size() + toks.size());
-			for (auto &tok : toks)
-				tokens.push_back(std::move(tok));
-		}
-
-		std::vector<std::unique_ptr<AstModule>> parse()
-		{
-			std::vector<std::unique_ptr<AstModule>> modules;
 			for (auto &sourceFile : sourceFiles)
 			{
-				TokenList tokens;
 				sourceFile.tokenize(tokens);
 				modules.emplace_back(parseTokens(*this, tokens));
-				extendTokens(tokens);
 			}
-			return modules;
+			return true;
+		}
+
+		unsigned int analyze()
+		{
+			unsigned int failures = 0;
+			for (auto &mod : modules)
+				failures += buildScopes(*this, *mod);
+			for (auto &mod : modules)
+				failures += resolveSymbols(*this, *mod);
+			for (auto &mod : modules)
+				mangleNames(*this, *mod);
+			return failures;
 		}
 
 		const TokenList &getTokens() const
@@ -59,6 +64,16 @@ namespace Soda
 		const SymbolTable &getGlobalScope() const 
 		{ 
 			return globalScope; 
+		}
+
+		AstModuleList &GetModules()
+		{
+			return modules;
+		}
+
+		const AstModuleList &GetModules() const
+		{
+			return modules;
 		}
 
 		template< class... Args >
@@ -94,6 +109,7 @@ namespace Soda
 		SourceFileList sourceFiles;
 		TokenList tokens;
 		SymbolTable globalScope;
+		AstModuleList modules;
 		Logger logger;
 	};
 

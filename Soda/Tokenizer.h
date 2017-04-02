@@ -47,6 +47,7 @@ namespace Soda
 		TK_DEFAULT,
 		TK_BREAK,
 		TK_CONTINUE,
+		TK_GOTO,
 		TK_RETURN,
 		TK_FOR,
 		TK_WHILE,

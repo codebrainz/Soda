@@ -112,6 +112,7 @@ namespace Soda
 			{ "default", TK_DEFAULT },
 			{ "break", TK_BREAK },
 			{ "continue", TK_CONTINUE },
+			{ "goto", TK_GOTO },
 			{ "return", TK_RETURN },
 			{ "for", TK_FOR },
 			{ "while", TK_WHILE },
@@ -553,6 +554,7 @@ namespace Soda
 		case TK_DEFAULT:   return "DEFAULT_KWD";
 		case TK_BREAK:     return "BREAK_KWD";
 		case TK_CONTINUE:  return "CONTINUE_KWD";
+		case TK_GOTO:      return "GOTO_KWD";
 		case TK_RETURN:    return "RETURN_KWD";
 		case TK_FOR:       return "FOR_KWD";
 		case TK_WHILE:     return "WHILE_KWD";

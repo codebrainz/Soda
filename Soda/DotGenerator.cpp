@@ -12,7 +12,7 @@ namespace Soda
 	{
 		size_t idCounter;
 		std::unordered_map<AstNode*, size_t> table;
-		DotIdTable() : idCounter(0) {}
+		DotIdTable() : idCounter(0), table() {}
 		size_t nodeId(AstNode &n)
 		{
 			auto found = table.find(&n);
@@ -55,6 +55,30 @@ namespace Soda
 			n.acceptChildren(*this);
 		}
 
+		template< class NodeT >
+		void handleNamedNode(NodeT &n)
+		{
+			auto id = idTable.nodeId(n);
+			os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id << ")\\n" << n.mangledName << "\"];\n";
+			n.acceptChildren(*this);
+		}
+
+		void handleIdentNode(AstIdentifier &n)
+		{
+			if (n.refSymbol && n.refSymbol->decl)
+			{
+				n.refSymbol->decl->accept(*this);
+				auto refId = idTable.nodeId(*n.refSymbol->decl);
+				auto id = idTable.nodeId(n);
+				os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id << ")\\n" << n.mangledName() << "\\nref=" << refId << "\"];\n";
+			}
+			else
+			{
+				auto id = idTable.nodeId(n);
+				os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id << ")\\n" << n.mangledName() << "\"];\n";
+			}
+		}
+
 		virtual void visit(AstAmbiguityStmt &n) override final { handleNode(n); }
 		virtual void visit(AstNil &n) override final { handleNode(n); }
 		virtual void visit(AstBool &n) override final { handleNode(n); }
@@ -62,27 +86,37 @@ namespace Soda
 		virtual void visit(AstFloat &n) override final { handleNode(n); }
 		virtual void visit(AstChar &n) override final { handleNode(n); }
 		virtual void visit(AstString &n) override final { handleNode(n); }
-		virtual void visit(AstIdentifier &n) override final { handleNode(n); }
+		virtual void visit(AstIdentifier &n) override final { handleIdentNode(n); }
 		virtual void visit(AstUnary &n) override final { handleNode(n); }
 		virtual void visit(AstBinary &n) override final { handleNode(n); }
 		virtual void visit(AstTypeRef &n) override final { handleTypeRefNode(n); }
 		virtual void visit(AstCast &n) override final { handleNode(n); }
+		virtual void visit(AstIfExpr &n) override final { handleNode(n); }
+		virtual void visit(AstCallExpr &n) override final { handleNode(n); }
+		virtual void visit(AstIndexExpr &n) override final { handleNode(n); }
+		virtual void visit(AstMemberExpr &n) override final { handleNode(n); }
 		virtual void visit(AstEmptyStmt &n) override final { handleNode(n); }
 		virtual void visit(AstCommentStmt &n) override final { handleNode(n); }
 		virtual void visit(AstExprStmt &n) override final { handleNode(n); }
 		virtual void visit(AstBlockStmt &n) override final { handleNode(n); }
+		virtual void visit(AstReturnStmt &n) override final { handleNode(n); }
+		virtual void visit(AstBreakStmt &n) override final { handleNode(n); }
+		virtual void visit(AstContinueStmt &n) override final { handleNode(n); }
+		virtual void visit(AstGotoStmt &n) override final { handleNode(n); }
+		virtual void visit(AstIfStmt &n) override final { handleNode(n); }
+		virtual void visit(AstWhileStmt &n) override final { handleNode(n); }
 		virtual void visit(AstEmptyDecl &n) override final { handleNode(n); }
 		virtual void visit(AstCommentDecl &n) override final { handleNode(n); }
-		virtual void visit(AstUsingDecl &n) override final { handleNode(n); }
+		virtual void visit(AstUsingDecl &n) override final { handleNamedNode(n); }
 		virtual void visit(AstTypedef &n) override final { handleNode(n); }
-		virtual void visit(AstNamespaceDecl &n) override final { handleNode(n); }
-		virtual void visit(AstVarDecl &n) override final { handleNode(n); }
-		virtual void visit(AstParamDecl &n) override final { handleNode(n); }
-		virtual void visit(AstFuncDecl &n) override final { handleNode(n); }
-		virtual void visit(AstDelegateDecl &n) override final { handleNode(n); }
-		virtual void visit(AstStructDecl &n) override final { handleNode(n); }
-		virtual void visit(AstEnumeratorDecl &n) override final { handleNode(n); }
-		virtual void visit(AstEnumDecl &n) override final { handleNode(n); }
+		virtual void visit(AstNamespaceDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstVarDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstParamDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstFuncDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstDelegateDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstStructDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstEnumeratorDecl &n) override final { handleNamedNode(n); }
+		virtual void visit(AstEnumDecl &n) override final { handleNamedNode(n); }
 		virtual void visit(AstModule &n) override final { handleNode(n); }
 	};
 
@@ -123,10 +157,20 @@ namespace Soda
 		virtual void visit(AstBinary &n) override final { handleEdge(n); }
 		virtual void visit(AstTypeRef &n) override final { handleEdge(n); }
 		virtual void visit(AstCast &n) override final { handleEdge(n); }
+		virtual void visit(AstIfExpr &n) override final { handleEdge(n); }
+		virtual void visit(AstCallExpr &n) override final { handleEdge(n); }
+		virtual void visit(AstIndexExpr &n) override final { handleEdge(n); }
+		virtual void visit(AstMemberExpr &n) override final { handleEdge(n); }
 		virtual void visit(AstEmptyStmt &n) override final { handleEdge(n); }
 		virtual void visit(AstCommentStmt &n) override final { handleEdge(n); }
 		virtual void visit(AstExprStmt &n) override final { handleEdge(n); }
 		virtual void visit(AstBlockStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstReturnStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstBreakStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstContinueStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstGotoStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstIfStmt &n) override final { handleEdge(n); }
+		virtual void visit(AstWhileStmt &n) override final { handleEdge(n); }
 		virtual void visit(AstEmptyDecl &n) override final { handleEdge(n); }
 		virtual void visit(AstCommentDecl &n) override final { handleEdge(n); }
 		virtual void visit(AstUsingDecl &n) override final { handleEdge(n); }

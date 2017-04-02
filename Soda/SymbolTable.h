@@ -15,6 +15,7 @@ namespace Soda
 		SK_TYPEDEF,
 		SK_USING,
 		SK_FUNCTION,
+		SK_DELEGATE,
 		SK_VARIABLE,
 		SK_NAMESPACE,
 		SK_STRUCT,
@@ -35,6 +36,8 @@ namespace Soda
 	class SymbolTable
 	{
 	public:
+		typedef std::unordered_map<std::string, SymbolPtr> TableType;
+
 		SymbolTable *parent;
 		SymbolTable(SymbolTable *parent = nullptr);
 		bool define(SymbolKind kind, AstDecl *decl);
@@ -43,9 +46,11 @@ namespace Soda
 		{
 			return (lookup(name, rec) != nullptr);
 		}
+		TableType::iterator begin() { return table.begin(); }
+		TableType::iterator end() { return table.end(); }
 
 	private:
-		std::unordered_map<std::string, SymbolPtr> table;
+		TableType table;
 	};
 
 } // namespace Soda

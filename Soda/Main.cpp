@@ -15,12 +15,16 @@ int main(int argc, char **argv)
 	if (!options.outputFile.empty())
 	{
 		std::ofstream f(options.outputFile);
-		for (auto &mod : compiler.parse())
+		compiler.parse();
+		compiler.analyze();
+		for (auto &mod : compiler.GetModules())
 			generateDot(*mod, f);
 	}
 	else
 	{
-		for (auto &mod : compiler.parse())
+		compiler.parse();
+		compiler.analyze();
+		for (auto &mod : compiler.GetModules())
 			generateDot(*mod, std::cout);
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ast.h"
 #include "SourceFile.h"
 #include "Tokenizer.h"
 #include <sstream>
@@ -126,6 +127,12 @@ namespace Soda
 		void log(DiagnosticCategory cat, Token &token, Args&&... args)
 		{
 			log(cat, DiagnosticLocation(token.file, token.start, token.end), std::forward<Args>(args)...);
+		}
+
+		template< class... Args >
+		void log(DiagnosticCategory cat, AstNode &node, Args&&... args)
+		{
+			log(cat, *node.start, std::forward<Args>(args)...);
 		}
 
 		template< class... Args >

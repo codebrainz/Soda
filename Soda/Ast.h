@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SymbolTable.h"
+#include "SourceFile.h"
 #include "Tokenizer.h"
 #include "Visitor.h"
 #include <memory>
@@ -24,13 +25,24 @@ namespace Soda
 		NK_BINARY,
 		NK_TYPEREF,
 		NK_CAST,
+		NK_IF_EXPR,
+		NK_CALL_EXPR,
+		NK_INDEX_EXPR,
+		NK_MEMBER_EXPR,
 		NK_EMPTY_STMT,
 		NK_COMMENT_STMT,
 		NK_EXPR_STMT,
 		NK_BLOCK_STMT,
+		NK_RETURN_STMT,
+		NK_BREAK_STMT,
+		NK_CONTINUE_STMT,
+		NK_GOTO_STMT,
+		NK_IF_STMT,
+		NK_WHILE_STMT,
 		NK_EMPTY_DECL,
 		NK_COMMENT_DECL,
 		NK_USING_DECL,
+		NK_TYPENAME,
 		NK_TYPEDEF_DECL,
 		NK_NAMESPACE_DECL,
 		NK_VAR_DECL,
@@ -48,8 +60,10 @@ namespace Soda
 		AstNodeKind kind;
 		Token *start;
 		Token *end;
+		AstNode *parentNode;
+		SymbolTable *ownerScope;
 		AstNode(AstNodeKind kind, Token *start, Token *end)
-			: kind(kind), start(start), end(end) {}
+			: kind(kind), start(start), end(end), parentNode(nullptr), ownerScope(nullptr) {}
 		~AstNode() {}
 		virtual void accept(AstVisitor&) = 0;
 		virtual void acceptChildren(AstVisitor&) {}
@@ -164,8 +178,15 @@ namespace Soda
 	struct AstIdentifier final : public AstExpr
 	{
 		std::string name;
+		Symbol *refSymbol;
 		AstIdentifier(std::string name, Token *start = nullptr, Token *end = nullptr)
-			: AstExpr(NK_IDENTIFIER, start, end), name(name) {}
+			: AstExpr(NK_IDENTIFIER, start, end), name(name), refSymbol(nullptr) {}
+		std::string mangledName() const
+		{
+			if (refSymbol)
+				return refSymbol->decl->mangledName;
+			return name;
+		}
 		AST_VISITABLE(Identifier)
 	};
 
@@ -211,6 +232,13 @@ namespace Soda
 
 		BOP_LSHIFT,
 		BOP_RSHIFT,
+
+		BOP_EQ,
+		BOP_NE,
+		BOP_LT,
+		BOP_GT,
+		BOP_LE,
+		BOP_GE,
 
 		BOP_ASSIGN,
 		BOP_IADD,
@@ -279,6 +307,62 @@ namespace Soda
 		AST_VISITABLE(Cast)
 	};
 
+	struct AstIfExpr final : public AstExpr
+	{
+		AstExprPtr condExpr;
+		AstExprPtr thenExpr;
+		AstExprPtr elseExpr;
+		AstIfExpr(AstExprPtr condExpr, AstExprPtr thenExpr, AstExprPtr elseExpr, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_IF_EXPR, start, end), condExpr(std::move(condExpr)), thenExpr(std::move(thenExpr)), elseExpr(std::move(elseExpr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			condExpr->accept(v);
+			thenExpr->accept(v);
+			elseExpr->accept(v);
+		}
+		AST_VISITABLE(IfExpr)
+	};
+
+	struct AstCallExpr final : public AstExpr
+	{
+		AstExprPtr callee;
+		AstExprList arguments;
+		AstCallExpr(AstExprPtr callee, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_CALL_EXPR, start, end), callee(std::move(callee)) {}
+		AstCallExpr(AstExprPtr callee, AstExprList args, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_CALL_EXPR, start, end), callee(std::move(callee)), arguments(std::move(args)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			callee->accept(v);
+			for (auto &arg : arguments)
+				arg->accept(v);
+		}
+		AST_VISITABLE(CallExpr)
+	};
+
+	struct AstIndexExpr final : public AstExpr
+	{
+		AstExprPtr object;
+		AstExprPtr index;
+		AstIndexExpr(AstExprPtr object, AstExprPtr index, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_INDEX_EXPR, start, end), object(std::move(object)), index(std::move(index)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			object->accept(v);
+			index->accept(v);
+		}
+		AST_VISITABLE(IndexExpr)
+	};
+
+	struct AstMemberExpr final : public AstExpr
+	{
+		AstExprPtr object;
+		std::string member;
+		AstMemberExpr(AstExprPtr object, std::string member, Token *start = nullptr, Token *end = nullptr)
+			: AstExpr(NK_MEMBER_EXPR, start, end), object(std::move(object)), member(std::move(member)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			object->accept(v);
+		}
+		AST_VISITABLE(MemberExpr)
+	};
+
 	struct AstEmptyStmt final : public AstStmt
 	{
 		AstEmptyStmt(Token *start = nullptr, Token *end = nullptr)
@@ -320,6 +404,72 @@ namespace Soda
 		AST_VISITABLE(BlockStmt)
 	};
 
+	struct AstReturnStmt final : public AstStmt
+	{
+		AstExprPtr expr;
+		AstReturnStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_RETURN_STMT, start, end) {}
+		AstReturnStmt(AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_RETURN_STMT, start, end), expr(std::move(expr)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			//if (expr)
+			//	expr->accept(v);
+		}
+		AST_VISITABLE(ReturnStmt)
+	};
+
+	struct AstBreakStmt final : public AstStmt
+	{
+		AstBreakStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_BREAK_STMT, start, end) {}
+		AST_VISITABLE(BreakStmt)
+	};
+
+	struct AstContinueStmt final : public AstStmt
+	{
+		AstContinueStmt(Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_CONTINUE_STMT, start, end) {}
+		AST_VISITABLE(ContinueStmt)
+	};
+
+	struct AstGotoStmt final : public AstStmt
+	{
+		std::string label;
+		AstGotoStmt(std::string label, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_GOTO_STMT, start, end), label(std::move(label)) {}
+		AST_VISITABLE(GotoStmt)
+	};
+
+	struct AstIfStmt final : public AstStmt
+	{
+		AstExprPtr condExpr;
+		AstStmtPtr thenStmt;
+		AstStmtPtr elseStmt;
+		AstIfStmt(AstExprPtr condExpr, AstStmtPtr thenStmt, AstStmtPtr elseStmt, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_IF_STMT, start, end),
+			  condExpr(std::move(condExpr)), thenStmt(std::move(thenStmt)), elseStmt(std::move(elseStmt)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			condExpr->accept(v);
+			thenStmt->accept(v);
+			if (elseStmt)
+				elseStmt->accept(v);
+		}
+		AST_VISITABLE(IfStmt)
+	};
+
+	struct AstWhileStmt final : public AstStmt
+	{
+		AstExprPtr expr;
+		AstStmtPtr stmt;
+		AstWhileStmt(AstExprPtr expr, AstStmtPtr stmt, Token *start = nullptr, Token *end = nullptr)
+			: AstStmt(NK_WHILE_STMT, start, end), expr(std::move(expr)), stmt(std::move(stmt)) {}
+		virtual void acceptChildren(AstVisitor &v) override final {
+			expr->accept(v);
+			stmt->accept(v);
+		}
+		AST_VISITABLE(WhileStmt)
+	};
+
 	struct AstEmptyDecl final : public AstDecl
 	{
 		AstEmptyDecl(Token *start = nullptr, Token *end = nullptr)
@@ -356,6 +506,7 @@ namespace Soda
 
 	struct AstNamespaceDecl final : public AstDecl
 	{
+		SymbolTable scope;
 		AstStmtList stmts;
 		AstNamespaceDecl(std::string name, Token *start = nullptr, Token *end = nullptr)
 			: AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end) {}
@@ -506,16 +657,68 @@ namespace Soda
 
 	struct AstModule final : public AstNode
 	{
+		std::string fileName;
 		AstDeclList members;
 		AstModule(Token *start = nullptr, Token *end = nullptr)
-			: AstNode(NK_MODULE, start, end) {}
+			: AstNode(NK_MODULE, start, end) 
+		{
+			updateFileName(); 
+		}
 		AstModule(AstDeclList members, Token *start = nullptr, Token *end = nullptr)
-			: AstNode(NK_MODULE, start, end), members(std::move(members)) {}
-		virtual void acceptChildren(AstVisitor &v) override final {
+			: AstNode(NK_MODULE, start, end), members(std::move(members)) 
+		{
+			updateFileName();
+		}
+		std::string replaceExtension(const std::string &ext) const
+		{
+			auto lastDot = fileName.rfind('.');
+			if (lastDot != fileName.npos)
+				return fileName.substr(0, lastDot) + ext;
+			return fileName;
+		}
+		std::string identifierName() const
+		{
+			std::string n("_soda_");
+			std::string noExt = replaceExtension("");
+			auto startPos = noExt.rfind('/');
+			if (startPos == noExt.npos)
+				startPos = noExt.rfind('\\');
+			if (startPos != noExt.npos)
+				noExt = noExt.substr(startPos + 1);
+			for (auto &ch : noExt)
+			{
+				if (isAlnum(ch))
+					n += ch;
+				else
+					n += '_';
+			}
+			return n;
+		}
+		virtual void acceptChildren(AstVisitor &v) override final
+		{
 			for (auto &member : members)
 				member->accept(v);
 		}
 		AST_VISITABLE(Module)
+	
+	private:
+		void updateFileName()
+		{
+			if (start)
+				fileName = start->file.getFileName();
+			else 
+			{
+				static unsigned int n = 0;
+				fileName = "untitled" + std::to_string(n++) + ".soda";
+			}
+		}
+		static bool isAlnum(int ch)
+		{
+			return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
+		}
 	};
+
+	typedef std::unique_ptr<AstModule> AstModulePtr;
+	typedef std::vector<AstModulePtr> AstModuleList;
 
 } // namespace Soda
