@@ -1077,24 +1077,25 @@ namespace Soda
             auto name = tokenText();
             if (!expect(TK_IDENT))
                 return nullptr;
-            auto endToken = currentToken();
-            if (accept(';'))
-                return std::make_unique< AstStructDecl >(
-                    std::move(name), startToken, endToken);
-            if (!expect('{'))
-                return nullptr;
             AstDeclList members;
-            if (!accept('}')) {
-                while (true) {
-                    if (auto decl = parseDecl()) {
-                        if (!isIgnored(decl))
-                            members.push_back(std::move(decl));
-                    } else {
-                        break;
-                    }
-                }
-                if (!expect('}'))
+            auto endToken = currentToken();
+            if (!accept(';')) {
+                if (!expect('{'))
                     return nullptr;
+                endToken = currentToken();
+                if (!accept('}')) {
+                    while (true) {
+                        if (auto decl = parseDecl()) {
+                            if (!isIgnored(decl))
+                                members.push_back(std::move(decl));
+                        } else {
+                            break;
+                        }
+                    }
+                    endToken = currentToken();
+                    if (!expect('}'))
+                        return nullptr;
+                }
             }
             return std::make_unique< AstStructDecl >(
                 std::move(name), std::move(members), startToken, endToken);
@@ -1138,6 +1139,7 @@ namespace Soda
             if (!accept(';')) {
                 if (!expect('{'))
                     return nullptr;
+                endToken = currentToken();
                 if (!accept('}')) {
                     while (true) {
                         if (auto etor = parseEnumerator()) {
@@ -1157,6 +1159,63 @@ namespace Soda
                 std::move(name), std::move(enumerators), startToken, endToken);
         }
 
+        //> namespace: NAMESPACE IDENT ';'
+        //>          | NAMESPACE IDENT '{' decl* '}'
+        //>          ;
+        AstDeclPtr parseNamespace()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_NAMESPACE))
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            AstStmtList stmts;
+            auto endToken = currentToken();
+            if (!accept(';')) {
+                if (!expect('{'))
+                    return nullptr;
+                endToken = currentToken();
+                if (!accept('}')) {
+                    while (true) {
+                        if (auto stmt = parseDecl()) {
+                            if (!isIgnored(stmt))
+                                stmts.push_back(std::move(stmt));
+                        } else {
+                            break;
+                        }
+                    }
+                    endToken = currentToken();
+                    if (!expect('}'))
+                        return nullptr;
+                }
+            }
+            return std::make_unique< AstNamespaceDecl >(
+                std::move(name), std::move(stmts), startToken, endToken);
+        }
+
+        //> using: using IDENT ( '.' IDENT )* ';'
+        //>      ;
+        AstDeclPtr parseUsing()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_USING))
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            while (accept('.')) {
+                name += tokenText();
+                if (!expect(TK_IDENT))
+                    return nullptr;
+            }
+            auto endToken = currentToken();
+            if (!expect(';'))
+                return nullptr;
+            return std::make_unique< AstUsingDecl >(
+                std::move(name), startToken, endToken);
+        }
+
         //> decl: ';'
         //>     | COMMENT
         //>     | typedef
@@ -1164,6 +1223,8 @@ namespace Soda
         //>     | function
         //>     | struct
         //>     | enum
+        //>     | namespace
+        //>     | using
         //>     ;
         AstDeclPtr parseDecl()
         {
@@ -1186,6 +1247,10 @@ namespace Soda
                 return parseStruct();
             } else if (kind == TK_ENUM) {
                 return parseEnum();
+            } else if (kind == TK_NAMESPACE) {
+                return parseNamespace();
+            } else if (kind == TK_USING) {
+                return parseUsing();
             } else {
                 return parseVarOrFuncDef();
             }

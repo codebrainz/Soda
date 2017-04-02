@@ -53,6 +53,8 @@ namespace Soda
         TK_WHILE,
         TK_STRUCT,
         TK_ENUM,
+        TK_NAMESPACE,
+        TK_USING,
 
         TK_COMMENT,
         TK_NIL,
