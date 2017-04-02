@@ -71,25 +71,16 @@ namespace Soda
             auto id = idTable.nodeId(n);
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
                << ")\\n"
-               << n.mangledName << "\"];\n";
+               << n.name << "\"];\n";
             n.acceptChildren(*this);
         }
 
         void handleIdentNode(AstIdentifier &n)
         {
-            if (n.refSymbol && n.refSymbol->decl) {
-                // n.refSymbol->decl->accept(*this);
-                auto refId = idTable.nodeId(*n.refSymbol->decl);
-                auto id = idTable.nodeId(n);
-                os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
-                   << id << ")\\n"
-                   << n.mangledName() << "\\nref=" << refId << "\"];\n";
-            } else {
-                auto id = idTable.nodeId(n);
-                os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
-                   << id << ")\\n"
-                   << n.mangledName() << "\"];\n";
-            }
+            auto id = idTable.nodeId(n);
+            os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
+               << ")\\n"
+               << n.name << "\"];\n";
         }
 
         virtual void visit(AstAmbiguityStmt &n) override final

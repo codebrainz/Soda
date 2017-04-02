@@ -39,8 +39,8 @@ namespace Soda
                 failures += buildScopes(*this, *mod);
             for (auto &mod : modules)
                 failures += resolveSymbols(*this, *mod);
-            for (auto &mod : modules)
-                mangleNames(*this, *mod);
+            //for (auto &mod : modules)
+            //    mangleNames(*this, *mod);
             return failures;
         }
 

@@ -100,15 +100,16 @@ namespace Soda
 
     void Lexer::setIdKwdKind(Token &token)
     {
-        static const std::pair< std::string, TokenKind > kwds[] = {
-            { "nil", TK_NIL }, { "true", TK_TRUE }, { "false", TK_FALSE },
-            { "const", TK_CONST }, { "static", TK_CONST },
-            { "typedef", TK_TYPEDEF }, { "if", TK_IF }, { "else", TK_ELSE },
-            { "switch", TK_SWITCH }, { "case", TK_CASE },
-            { "default", TK_DEFAULT }, { "break", TK_BREAK },
-            { "continue", TK_CONTINUE }, { "goto", TK_GOTO },
-            { "return", TK_RETURN }, { "for", TK_FOR }, { "while", TK_WHILE },
-        };
+        static const std::pair< std::string, TokenKind > kwds[]
+            = { { "nil", TK_NIL }, { "true", TK_TRUE }, { "false", TK_FALSE },
+                { "const", TK_CONST }, { "static", TK_CONST },
+                { "typedef", TK_TYPEDEF }, { "if", TK_IF }, { "else", TK_ELSE },
+                { "switch", TK_SWITCH }, { "case", TK_CASE },
+                { "default", TK_DEFAULT }, { "break", TK_BREAK },
+                { "continue", TK_CONTINUE }, { "goto", TK_GOTO },
+                { "return", TK_RETURN }, { "for", TK_FOR },
+                { "while", TK_WHILE }, { "struct", TK_STRUCT },
+                { "enum", TK_ENUM } };
         auto len = token.end - token.start;
         for (auto &kwd : kwds) {
             if (kwd.first.length() != len)
@@ -499,6 +500,10 @@ namespace Soda
             return "FOR_KWD";
         case TK_WHILE:
             return "WHILE_KWD";
+        case TK_STRUCT:
+            return "STRUCT_KWD";
+        case TK_ENUM:
+            return "ENUM_KWD";
         case TK_COMMENT:
             return "COMMENT";
         case TK_NIL:

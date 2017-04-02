@@ -113,6 +113,8 @@ namespace Soda
         template < class NodePtrT >
         bool isIgnored(NodePtrT &node)
         {
+            if (!node)
+                return true;
             switch (node->kind) {
             case NK_EMPTY_DECL:
             case NK_EMPTY_STMT:
@@ -1050,7 +1052,8 @@ namespace Soda
         AstDeclPtr parseTypeDef()
         {
             auto startToken = currentToken();
-            expect(TK_TYPEDEF);
+            if (!expect(TK_TYPEDEF))
+                return nullptr;
             auto typeRef = parseTypeRef();
             assert(typeRef);
             auto name = tokenText();
@@ -1063,28 +1066,126 @@ namespace Soda
                 std::move(name), std::move(typeRef), startToken, endToken);
         }
 
+        //> struct: STRUCT IDENT ';'
+        //>       | STRUCT IDENT '{' decl* '}'
+        //>       ;
+        AstDeclPtr parseStruct()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_STRUCT))
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            auto endToken = currentToken();
+            if (accept(';'))
+                return std::make_unique< AstStructDecl >(
+                    std::move(name), startToken, endToken);
+            if (!expect('{'))
+                return nullptr;
+            AstDeclList members;
+            if (!accept('}')) {
+                while (true) {
+                    if (auto decl = parseDecl()) {
+                        if (!isIgnored(decl))
+                            members.push_back(std::move(decl));
+                    } else {
+                        break;
+                    }
+                }
+                if (!expect('}'))
+                    return nullptr;
+            }
+            return std::make_unique< AstStructDecl >(
+                std::move(name), std::move(members), startToken, endToken);
+        }
+
+        //> enumerator: IDENT
+        //>           | IDENT '=' expr
+        //>           ;
+        AstEnumeratorDeclPtr parseEnumerator()
+        {
+            auto startToken = currentToken();
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            AstExprPtr initExpr;
+            auto endToken = currentToken();
+            if (accept('=')) {
+                initExpr = parseExpr();
+                if (!initExpr)
+                    return nullptr;
+                endToken = initExpr->end;
+            }
+            return std::make_unique< AstEnumeratorDecl >(
+                std::move(name), std::move(initExpr), startToken, endToken);
+        }
+
+        //> enum: ENUM IDENT ';'
+        //>     | ENUM IDENT '{' '}'
+        //>     | ENUM IDENT '{' enumerator ( ',' enumerator )* ','? '}'
+        //>     ;
+        AstDeclPtr parseEnum()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_ENUM))
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            AstEnumeratorList enumerators;
+            auto endToken = currentToken();
+            if (!accept(';')) {
+                if (!expect('{'))
+                    return nullptr;
+                if (!accept('}')) {
+                    while (true) {
+                        if (auto etor = parseEnumerator()) {
+                            enumerators.push_back(std::move(etor));
+                            if (!accept(','))
+                                break;
+                        } else {
+                            break;
+                        }
+                    }
+                    endToken = currentToken();
+                    if (!expect('}'))
+                        return nullptr;
+                }
+            }
+            return std::make_unique< AstEnumDecl >(
+                std::move(name), std::move(enumerators), startToken, endToken);
+        }
+
         //> decl: ';'
         //>     | COMMENT
         //>     | typedef
         //>     | variable
         //>     | function
+        //>     | struct
+        //>     | enum
         //>     ;
         AstDeclPtr parseDecl()
         {
+            auto kind = currentToken()->kind;
             auto startToken = currentToken();
-            if (currentToken()->kind == ';') {
+            if (kind == ';') {
                 auto endToken = currentToken();
                 expect(';');
                 return std::make_unique< AstEmptyDecl >(startToken, endToken);
-            } else if (currentToken()->kind == TK_COMMENT) {
+            } else if (kind == TK_COMMENT) {
                 std::string text;
                 currentToken()->getText(text);
                 auto endToken = currentToken();
                 expect(TK_COMMENT);
                 return std::make_unique< AstCommentDecl >(
                     text, startToken, endToken);
-            } else if (currentToken()->kind == TK_TYPEDEF) {
+            } else if (kind == TK_TYPEDEF) {
                 return parseTypeDef();
+            } else if (kind == TK_STRUCT) {
+                return parseStruct();
+            } else if (kind == TK_ENUM) {
+                return parseEnum();
             } else {
                 return parseVarOrFuncDef();
             }

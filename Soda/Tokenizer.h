@@ -51,6 +51,8 @@ namespace Soda
         TK_RETURN,
         TK_FOR,
         TK_WHILE,
+        TK_STRUCT,
+        TK_ENUM,
 
         TK_COMMENT,
         TK_NIL,
