@@ -5,3 +5,5 @@ Debug/
 Soda/test.svg
 Soda/test.dot
 *.user
+/LLVM_Build
+/LLVM_Prefix
