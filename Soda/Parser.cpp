@@ -942,7 +942,7 @@ namespace Soda
 		//> type_member: TK_IDENT
 		//>            | type_member '.' TK_IDENT
 		//>            ;
-		bool Parser::parseTypeMember(std::string &composedName, Token *endToken)
+		bool parseTypeMember(std::string &composedName, Token *endToken)
 		{
 			while (true)
 			{

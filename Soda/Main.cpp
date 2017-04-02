@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
 	compiler.reportDiagnostics(std::cerr);
 
-	std::cerr << "=================================\nPress enter to exit" << std::endl;
-	std::cin.get();
+	//std::cerr << "=================================\nPress enter to exit" << std::endl;
+	//std::cin.get();
 	return 0;
 }

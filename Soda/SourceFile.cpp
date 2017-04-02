@@ -2,8 +2,19 @@
 #include <stdexcept>
 #include <iostream>
 #include <cassert>
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
+#include <cerrno>
+#include <cstring>
+
+#ifdef _WIN32
+# define SODA_WIN32
+# define WIN32_LEAN_AND_MEAN
+# include "windows.h"
+#else
+# include <fcntl.h>
+# include <unistd.h>
+# include <sys/mman.h>
+# include <sys/stat.h>
+#endif
 
 #define TAB_WIDTH 8u
 
@@ -14,14 +25,21 @@ namespace Soda
 	{
 		Compiler &comp;
 		std::string fn;
+		void *mapData;
+
+#ifdef SODA_WIN32
 		DWORD dwSize;
 		HANDLE hFile;
 		HANDLE hMapFile;
-		void *mapData;
+#else
+		size_t dwSize;
+		int fd;
+#endif
 
 		Private(Compiler &comp, const std::string &fn)
-			: comp(comp), fn(fn)
+			: comp(comp), fn(fn), mapData(nullptr)
 		{
+#ifdef SODA_WIN32
 			hFile = CreateFile(fn.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 			if (hFile == INVALID_HANDLE_VALUE)
 				throw std::runtime_error("failed to open file '" + fn + "' (error code " + std::to_string(GetLastError()) + ")");
@@ -36,13 +54,30 @@ namespace Soda
 			mapData = MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
 			if (mapData == NULL)
 				throw std::runtime_error("failed to create view of memory mapped file '" + fn + "' (error code " + std::to_string(GetLastError()) + ")");
+#else
+			fd = ::open(fn.c_str(), O_RDONLY);
+			if (fd < 0)
+				throw std::runtime_error("failed to open file '" + fn + "': " + strerror(errno) + " (error code " + std::to_string(errno) + ")");
+			struct ::stat sb;
+			if (::stat(fn.c_str(), &sb) != 0)
+				throw std::runtime_error("failed to stat file '" + fn + "': " + strerror(errno) + " (error code " + std::to_string(errno) + ")");
+			dwSize = sb.st_size;
+			mapData = ::mmap(nullptr, dwSize, PROT_READ, MAP_PRIVATE, fd, 0);
+			if (mapData == MAP_FAILED)
+				throw std::runtime_error("failed to map file '" + fn + "': " + strerror(errno) + " (error code " + std::to_string(errno) + ")");
+#endif
 		}
 
 		~Private()
 		{
+#ifdef SODA_WIN32
 			UnmapViewOfFile(mapData);
 			CloseHandle(hMapFile);
 			CloseHandle(hFile);
+#else
+			::munmap(mapData, dwSize);
+			::close(fd);
+#endif
 		}
 	};
 
