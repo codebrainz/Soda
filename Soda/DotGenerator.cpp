@@ -67,7 +67,7 @@ namespace Soda
 		{
 			if (n.refSymbol && n.refSymbol->decl)
 			{
-				n.refSymbol->decl->accept(*this);
+				//n.refSymbol->decl->accept(*this);
 				auto refId = idTable.nodeId(*n.refSymbol->decl);
 				auto id = idTable.nodeId(n);
 				os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id << ")\\n" << n.mangledName() << "\\nref=" << refId << "\"];\n";

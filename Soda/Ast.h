@@ -139,7 +139,7 @@ namespace Soda
 	{
 		bool value;
 		AstBool(bool value, Token *start = nullptr, Token *end = nullptr)
-			: AstExpr(NK_BOOL, start, end) {}
+			: AstExpr(NK_BOOL, start, end), value(value) {}
 		AST_VISITABLE(Bool)
 	};
 
@@ -412,8 +412,8 @@ namespace Soda
 		AstReturnStmt(AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
 			: AstStmt(NK_RETURN_STMT, start, end), expr(std::move(expr)) {}
 		virtual void acceptChildren(AstVisitor &v) override final {
-			//if (expr)
-			//	expr->accept(v);
+			if (expr)
+				expr->accept(v);
 		}
 		AST_VISITABLE(ReturnStmt)
 	};

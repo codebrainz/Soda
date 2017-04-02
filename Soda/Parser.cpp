@@ -912,7 +912,7 @@ namespace Soda
 			else if (kind == TK_IF)
 				return parseIfStmt();
 			else if (auto decl = parseDecl())
-				return decl;
+				return std::move(decl);
 			else if (auto stmt = parseExprStmt())
 				return stmt;
 			return nullptr;
@@ -942,12 +942,12 @@ namespace Soda
 		//> type_member: TK_IDENT
 		//>            | type_member '.' TK_IDENT
 		//>            ;
-		bool parseTypeMember(std::string &composedName, Token *endToken)
+		bool parseTypeMember(std::string &composedName, Token **endToken)
 		{
 			while (true)
 			{
 				auto name = tokenText();
-				endToken = currentToken();
+				*endToken = currentToken();
 				if (accept(TK_IDENT))
 				{
 					composedName += name;
@@ -973,7 +973,7 @@ namespace Soda
 				typeFlags = TypeFlags(typeFlags | TF_CONST);
 			std::string name;
 			Token *endToken = nullptr;
-			if (!parseTypeMember(name, endToken))
+			if (!parseTypeMember(name, &endToken))
 				return nullptr;
 			auto typeRef = std::make_unique<AstTypeRef>(name, typeFlags, startToken, endToken);
 			while (true)
@@ -1085,7 +1085,7 @@ namespace Soda
 				auto fun = std::make_unique<AstFuncDecl>(std::move(name), std::move(typeRef), std::move(params), std::move(stmts), startToken, endToken);
 				fun->flags = DeclFlags(fun->flags | declFlags);
 				bt.cancel();
-				return fun;
+				return std::move(fun);
 			}
 			// Variable
 			else
@@ -1099,7 +1099,7 @@ namespace Soda
 				auto var = std::make_unique<AstVarDecl>(std::move(name), std::move(typeRef), std::move(initExpr), startToken, endToken);
 				var->flags = DeclFlags(var->flags | declFlags);
 				bt.cancel();
-				return var;
+				return std::move(var);
 			}
 		}
 

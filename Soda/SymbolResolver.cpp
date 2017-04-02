@@ -28,7 +28,7 @@ namespace Soda
 			closeScope(n);
 		}
 
-		virtual void visit(AstUsingDecl &n) override final
+		virtual void visit(AstUsingDecl&) override final
 		{
 			// todo: import symbols from referred namespace into current scope
 		}
