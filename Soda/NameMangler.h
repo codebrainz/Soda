@@ -3,9 +3,9 @@
 namespace Soda
 {
 
-	struct AstNode;
-	class Compiler;
+    struct AstNode;
+    class Compiler;
 
-	bool mangleNames(Compiler &compiler, AstNode &node);
+    bool mangleNames(Compiler &compiler, AstNode &node);
 
 } // namespace Soda

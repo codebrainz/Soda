@@ -6,9 +6,10 @@
 namespace Soda
 {
 
-	class Compiler;
-	struct AstModule;
+    class Compiler;
+    struct AstModule;
 
-	std::unique_ptr<AstModule> parseTokens(Compiler &compiler, TokenList &tokenList);
+    std::unique_ptr< AstModule > parseTokens(
+        Compiler &compiler, TokenList &tokenList);
 
 } // namespace Soda
