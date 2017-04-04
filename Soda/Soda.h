@@ -5,6 +5,7 @@
 #include "DotGenerator.h"
 #include "Logger.h"
 #include "NameMangler.h"
+#include "Operators.h"
 #include "Options.h"
 #include "Parser.h"
 #include "ScopeBuilder.h"

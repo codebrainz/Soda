@@ -58,14 +58,63 @@ namespace Soda
             }
         }
 
+        auto splitName(const std::string &name)
+        {
+            std::vector< std::string > parts;
+            size_t index = 0;
+            parts.push_back("");
+            for (auto &ch : name) {
+                if (ch != '.')
+                    parts[index] += ch;
+                else {
+                    index++;
+                    parts.push_back("");
+                }
+            }
+            return parts;
+        }
+
         Symbol *lookup(AstNode &n, const std::string &name, bool rec = true)
         {
             assert(currentScope());
-            if (auto sym = currentScope()->lookup(name, rec))
-                return sym;
-            else {
-                compiler.error(n, "undefined symbol '%'", name);
+            auto nameParts = splitName(name);
+            if (nameParts.size() == 1) {
+                if (auto sym = currentScope()->lookup(nameParts[0], rec))
+                    return sym;
+                else {
+                    compiler.error(n, "undefined symbol '%'", nameParts[0]);
+                    errorCount++;
+                    return nullptr;
+                }
+            } else if (nameParts.size() == 0) {
+                compiler.error(n, "cannot lookup empty symbol");
                 errorCount++;
+                return nullptr;
+            } else /* if (nameParts.size() > 1) */ {
+                if (auto sym = currentScope()->lookup(nameParts[0])) {
+                    for (size_t i = 1; sym != nullptr && i < nameParts.size();
+                         i++) {
+                        switch (sym->decl->kind) {
+                        case NK_NAMESPACE_DECL:
+                            sym = static_cast< AstNamespaceDecl * >(sym->decl)
+                                      ->scope.lookup(nameParts[i]);
+                            break;
+                        case NK_STRUCT_DECL:
+                            sym = static_cast< AstStructDecl * >(sym->decl)
+                                      ->scope.lookup(nameParts[i]);
+                            break;
+                        case NK_ENUM_DECL:
+                            sym = static_cast< AstEnumDecl * >(sym->decl)
+                                      ->scope.lookup(nameParts[i]);
+                            break;
+                        default:
+                            i = nameParts.size();
+                            break;
+                        }
+                    }
+                    assert(sym);
+                    return sym;
+                }
                 return nullptr;
             }
         }

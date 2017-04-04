@@ -172,7 +172,7 @@ namespace Soda
             }
         }
         if (isAlpha() || chr == '_') {
-            while (isAlnum() || chr == '_')
+            while (isAlnum() || chr == '_' || chr == '.')
                 nextChar();
             token.end = offset;
             setIdKwdKind(token);

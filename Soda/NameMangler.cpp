@@ -94,9 +94,9 @@ namespace Soda
 
         virtual void visit(AstModule &n)
         {
-            nameStack.push_back(std::move(n.identifierName()));
+            //nameStack.push_back(std::move(n.identifierName()));
             n.acceptChildren(*this);
-            nameStack.pop_back();
+            //nameStack.pop_back();
         }
     };
 

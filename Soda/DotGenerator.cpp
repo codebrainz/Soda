@@ -1,7 +1,9 @@
 #include "Ast.h"
 #include "DotGenerator.h"
+#include "Operators.h"
 #include "Visitor.h"
 #include <cassert>
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 
@@ -42,7 +44,19 @@ namespace Soda
         {
             auto id = idTable.nodeId(n);
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
-               << ")\"];\n";
+               << ")\", shape=box];\n";
+            n.acceptChildren(*this);
+        }
+
+        template < class NodeT >
+        void handleValueNode(NodeT &n)
+        {
+            std::stringstream ss;
+            ss << n.value;
+            auto id = idTable.nodeId(n);
+            os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
+               << ")\\n"
+               << ss.str() << "\", shape=box];\n";
             n.acceptChildren(*this);
         }
 
@@ -61,7 +75,7 @@ namespace Soda
                 os << "p";
             if (!n.name.empty())
                 os << "\\n" << n.name;
-            os << "\"];\n";
+            os << "\", shape=box];\n";
             n.acceptChildren(*this);
         }
 
@@ -71,16 +85,48 @@ namespace Soda
             auto id = idTable.nodeId(n);
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
                << ")\\n"
-               << n.name << "\"];\n";
+               << n.name;
+            if (!n.mangledName.empty())
+                os << "\\n" << n.mangledName;
+            os << "\", shape=box];\n";
             n.acceptChildren(*this);
         }
 
         void handleIdentNode(AstIdentifier &n)
         {
+            if (n.refSymbol) {
+                auto id = idTable.nodeId(n);
+                os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
+                   << id << ")\\n"
+                   << n.name;
+                if (!n.refSymbol->decl->mangledName.empty())
+                    os << "\\n" << n.refSymbol->decl->mangledName;
+                os << "\\nref=" << idTable.nodeId(*(n.refSymbol->decl))
+                   << "\", shape=box];\n";
+            } else {
+                auto id = idTable.nodeId(n);
+                os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
+                   << id << ")\\n"
+                   << n.name << "\", shape=box];\n";
+            }
+        }
+
+        void handleUnaryNode(AstUnary &n)
+        {
             auto id = idTable.nodeId(n);
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
                << ")\\n"
-               << n.name << "\"];\n";
+               << operatorName(n.op) << "\", shape=box];\n";
+            n.acceptChildren(*this);
+        }
+
+        void handleBinaryNode(AstBinary &n)
+        {
+            auto id = idTable.nodeId(n);
+            os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
+               << ")\\n"
+               << operatorName(n.op) << "\", shape=box];\n";
+            n.acceptChildren(*this);
         }
 
         virtual void visit(AstAmbiguityStmt &n) override final
@@ -93,23 +139,23 @@ namespace Soda
         }
         virtual void visit(AstBool &n) override final
         {
-            handleNode(n);
+            handleValueNode(n);
         }
         virtual void visit(AstInt &n) override final
         {
-            handleNode(n);
+            handleValueNode(n);
         }
         virtual void visit(AstFloat &n) override final
         {
-            handleNode(n);
+            handleValueNode(n);
         }
         virtual void visit(AstChar &n) override final
         {
-            handleNode(n);
+            handleValueNode(n);
         }
         virtual void visit(AstString &n) override final
         {
-            handleNode(n);
+            handleValueNode(n);
         }
         virtual void visit(AstIdentifier &n) override final
         {
@@ -117,11 +163,11 @@ namespace Soda
         }
         virtual void visit(AstUnary &n) override final
         {
-            handleNode(n);
+            handleUnaryNode(n);
         }
         virtual void visit(AstBinary &n) override final
         {
-            handleNode(n);
+            handleBinaryNode(n);
         }
         virtual void visit(AstTypeRef &n) override final
         {
@@ -434,6 +480,7 @@ namespace Soda
         DotNodeGenerator nodeGenerator(os, idTable);
         DotEdgeGenerator edgeGenerator(os, idTable);
         os << "graph AstGraph {\n";
+        os << "\tnode [fontname=\"Opera Mono\", fontsize=9];\n";
         node.accept(nodeGenerator);
         node.accept(edgeGenerator);
         os << "}\n";

@@ -13,7 +13,8 @@ SOURCES += \
     Soda/SymbolResolver.cpp \
     Soda/SymbolTable.cpp \
     Soda/Tokenizer.cpp \
-    Soda/Visitor.cpp
+    Soda/Visitor.cpp \
+    Soda/Operators.cpp
 
 HEADERS += \
     Soda/Ast.h \
@@ -30,4 +31,5 @@ HEADERS += \
     Soda/SymbolResolver.h \
     Soda/SymbolTable.h \
     Soda/Tokenizer.h \
-    Soda/Visitor.h
+    Soda/Visitor.h \
+    Soda/Operators.h

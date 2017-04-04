@@ -1,15 +1,27 @@
-int fib(int n)
+
+namespace std.math
 {
-    if (n == 0) { 
-        return 0;
-    } else if (n == 1) {
-        return 1;
-    } else {
-        return (fib(n - 1) + fib(n - 2));
+
+    enum LowNumber
+    {
+        ZERO = 0,
+        ONE = 1,
+        TWO = 2
     }
+
+    int fib(int n)
+    {
+        if (n == LowNumber.ZERO)
+            return LowNumber.ZERO;
+        else if (n == LowNumber.ONE)
+            return LowNumber.ONE;
+        else
+            return (fib(n - LowNumber.ONE) + fib(n - LowNumber.TWO));
+    }
+
 }
 
-void main()
+int main()
 {
-    return fib(3);
+    return math.fib(3);
 }

@@ -133,6 +133,72 @@ namespace Soda
             return text;
         }
 
+        unsigned long long parseIntLiteral(
+            Token *start, const std::string &text)
+        {
+            int base = 0;
+            size_t offset = 0;
+            if (text[0] == '0' && text.size() > 1) {
+                switch (text[2]) {
+                case 'b':
+                case 'B':
+                    base = 2;
+                    offset = 2;
+                case 'd':
+                case 'D':
+                    base = 10;
+                    offset = 2;
+                case 'o':
+                case 'O':
+                    base = 8;
+                    offset = 2;
+                case 'x':
+                case 'X':
+                    base = 16;
+                    offset = 2;
+                default:
+                    base = 8;
+                    offset = 0;
+                    break;
+                }
+            } else {
+                base = 10;
+                offset = 0;
+            }
+            try {
+                return std::stoull(text.substr(offset), 0, base);
+            } catch (std::invalid_argument &e) {
+                std::string msg
+                    = "failed to parse int '" + text + "': " + e.what();
+                compiler.error(*start, "%", msg);
+                return 0;
+            } catch (std::out_of_range &e) {
+                std::string msg = "integer literal '" + text
+                    + "' out of range?: " + e.what();
+                compiler.error(*start, "%", msg);
+                return 0;
+            }
+        }
+
+        long double parseFloatLiteral(Token *start, const std::string &text)
+        {
+            try {
+                return std::stold(text, 0);
+            } catch (std::invalid_argument &e) {
+                std::string msg
+                    = "failed to parse float '" + text + "': " + e.what();
+                compiler.error(*start, "%", msg);
+                return 0.0;
+            } catch (std::out_of_range &e) {
+                std::string msg = "floating-point literal '" + text
+                    + "' out of range: " + e.what();
+                compiler.error(*start, "%", msg);
+                return 0.0;
+            }
+
+            return 0.0;
+        }
+
         //> primary_expr: NIL
         //>             | TRUE
         //>             | FALSE
@@ -156,10 +222,12 @@ namespace Soda
                 return std::make_unique< AstBool >(
                     false, startToken, startToken);
             else if (accept(TK_INT))
-                return std::make_unique< AstInt >(0, startToken, startToken);
+                return std::make_unique< AstInt >(
+                    parseIntLiteral(startToken, text), startToken, startToken);
             else if (accept(TK_FLOAT))
                 return std::make_unique< AstFloat >(
-                    0.0, startToken, startToken);
+                    parseFloatLiteral(startToken, text), startToken,
+                    startToken);
             else if (accept(TK_CHAR))
                 return std::make_unique< AstChar >(
                     text, startToken, startToken);
