@@ -12,6 +12,9 @@
 namespace Soda
 {
 
+    template < class T >
+    using NodePtrType = std::unique_ptr< T >;
+
     enum AstNodeKind
     {
         NK_AMBIGUITY,
@@ -128,10 +131,10 @@ namespace Soda
         }
     };
 
-    typedef std::unique_ptr< AstNode > AstNodePtr;
-    typedef std::unique_ptr< AstExpr > AstExprPtr;
-    typedef std::unique_ptr< AstStmt > AstStmtPtr;
-    typedef std::unique_ptr< AstDecl > AstDeclPtr;
+    typedef NodePtrType< AstNode > AstNodePtr;
+    typedef NodePtrType< AstExpr > AstExprPtr;
+    typedef NodePtrType< AstStmt > AstStmtPtr;
+    typedef NodePtrType< AstDecl > AstDeclPtr;
 
     typedef std::vector< AstNodePtr > AstNodeList;
     typedef std::vector< AstExprPtr > AstExprList;
@@ -296,7 +299,7 @@ namespace Soda
     struct AstTypeRef final : public AstNode
     {
         std::string name;
-        std::unique_ptr< AstTypeRef > refType;
+        NodePtrType< AstTypeRef > refType;
         TypeFlags typeFlags;
         AstTypeRef(std::string name, TypeFlags typeFlags = TF_NONE,
             Token *start = nullptr, Token *end = nullptr)
@@ -305,7 +308,7 @@ namespace Soda
             , typeFlags(typeFlags)
         {
         }
-        AstTypeRef(std::unique_ptr< AstTypeRef > refType,
+        AstTypeRef(NodePtrType< AstTypeRef > refType,
             TypeFlags typeFlags = TF_NONE, Token *start = nullptr,
             Token *end = nullptr)
             : AstNode(NK_TYPEREF, start, end)
@@ -321,7 +324,7 @@ namespace Soda
         AST_VISITABLE(TypeRef)
     };
 
-    typedef std::unique_ptr< AstTypeRef > AstTypeRefPtr;
+    typedef NodePtrType< AstTypeRef > AstTypeRefPtr;
     typedef std::vector< AstTypeRefPtr > AstTypeRefList;
 
     struct AstCast final : public AstExpr
@@ -837,7 +840,7 @@ namespace Soda
         AST_VISITABLE(EnumeratorDecl)
     };
 
-    typedef std::unique_ptr< AstEnumeratorDecl > AstEnumeratorDeclPtr;
+    typedef NodePtrType< AstEnumeratorDecl > AstEnumeratorDeclPtr;
     typedef std::vector< AstEnumeratorDeclPtr > AstEnumeratorList;
 
     struct AstEnumDecl final : public AstDecl
@@ -944,7 +947,7 @@ namespace Soda
         }
     };
 
-    typedef std::unique_ptr< AstModule > AstModulePtr;
+    typedef NodePtrType< AstModule > AstModulePtr;
     typedef std::vector< AstModulePtr > AstModuleList;
 
 } // namespace Soda

@@ -1325,8 +1325,7 @@ namespace Soda
         }
     };
 
-    std::unique_ptr< AstModule > parseTokens(
-        Compiler &compiler, TokenList &tokenList)
+    AstModulePtr parseTokens(Compiler &compiler, TokenList &tokenList)
     {
         Parser parser(compiler, tokenList);
         Token *startToken = nullptr;
