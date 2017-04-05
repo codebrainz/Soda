@@ -14,7 +14,8 @@ SOURCES += \
     Soda/SymbolTable.cpp \
     Soda/Tokenizer.cpp \
     Soda/Visitor.cpp \
-    Soda/Operators.cpp
+    Soda/Operators.cpp \
+    Soda/CCodeTreeGen.cpp
 
 HEADERS += \
     Soda/Ast.h \
@@ -32,4 +33,6 @@ HEADERS += \
     Soda/SymbolTable.h \
     Soda/Tokenizer.h \
     Soda/Visitor.h \
-    Soda/Operators.h
+    Soda/Operators.h \
+    Soda/CCode.h \
+    Soda/CCodeTreeGen.h

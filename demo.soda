@@ -1,0 +1,19 @@
+
+extern "C" int errno;
+extern "C" string strerror(int errno);
+
+struct Error
+{
+    string what { get; set; }
+};
+
+struct SystemError : Error
+{
+    int code { get; set; }
+};
+
+struct IOError : SystemError
+{
+    IOError() : SystemError{ strerror(errno), errno } {}
+    IOError(string msg) : SystemError{ strerror(errno) + ": " + msg, errno } {}
+};
