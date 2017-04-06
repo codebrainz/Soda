@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CCodeVisitor.h"
 #include "Operators.h"
 #include "Tokenizer.h"
 #include <memory>
@@ -60,6 +61,7 @@ namespace Soda
         CNodeKind kind;
         Token *start;
         Token *end;
+        CNodeListType< CNodePtrType< CNode > > children;
 
         CNode(CNodeKind kind, Token *start, Token *end)
             : kind(kind)
@@ -71,7 +73,28 @@ namespace Soda
         virtual ~CNode()
         {
         }
+
+        virtual void accept(CCodeVisitor &) = 0;
+
+        virtual void acceptChildren(CCodeVisitor &v)
+        {
+            for (auto &child : children)
+                child->accept(v);
+        }
+
+        virtual const std::string &kindName() const = 0;
     };
+
+#define CCODE_VISITABLE(nm)                                    \
+    virtual void accept(CCodeVisitor &v) override final        \
+    {                                                          \
+        v.visit(*this);                                        \
+    }                                                          \
+    virtual const std::string &kindName() const override final \
+    {                                                          \
+        static const std::string n(#nm);                       \
+        return n;                                              \
+    }
 
     struct CExpr : public CNode
     {
@@ -117,15 +140,16 @@ namespace Soda
     typedef CNodeListType< CStmtPtr > CStmtList;
     typedef CNodeListType< CDeclPtr > CDeclList;
 
-    struct CNullLit : public CExpr
+    struct CNullLit final : public CExpr
     {
         CNullLit(Token *start, Token *end)
             : CExpr(CK_NULL_LIT, start, end)
         {
         }
+        CCODE_VISITABLE(CNullLit)
     };
 
-    struct CBoolLit : public CExpr
+    struct CBoolLit final : public CExpr
     {
         bool value;
         CBoolLit(bool value, Token *start, Token *end)
@@ -133,9 +157,10 @@ namespace Soda
             , value(value)
         {
         }
+        CCODE_VISITABLE(CBoolLit)
     };
 
-    struct CIntLit : public CExpr
+    struct CIntLit final : public CExpr
     {
         unsigned long long value;
         CIntLit(unsigned long long value, Token *start, Token *end)
@@ -143,9 +168,10 @@ namespace Soda
             , value(value)
         {
         }
+        CCODE_VISITABLE(CIntLit)
     };
 
-    struct CFloatLit : public CExpr
+    struct CFloatLit final : public CExpr
     {
         long double value;
         CFloatLit(long double value, Token *start, Token *end)
@@ -153,9 +179,10 @@ namespace Soda
             , value(value)
         {
         }
+        CCODE_VISITABLE(CFloatLit)
     };
 
-    struct CCharLit : public CExpr
+    struct CCharLit final : public CExpr
     {
         std::string value;
         CCharLit(std::string value, Token *start, Token *end)
@@ -163,9 +190,10 @@ namespace Soda
             , value(std::move(value))
         {
         }
+        CCODE_VISITABLE(CCharLit)
     };
 
-    struct CStringLit : public CExpr
+    struct CStringLit final : public CExpr
     {
         std::string value;
         CStringLit(std::string value, Token *start, Token *end)
@@ -173,9 +201,10 @@ namespace Soda
             , value(std::move(value))
         {
         }
+        CCODE_VISITABLE(CStringLit)
     };
 
-    struct CIdentifier : public CExpr
+    struct CIdentifier final : public CExpr
     {
         std::string name;
         CIdentifier(std::string name, Token *start, Token *end)
@@ -183,34 +212,34 @@ namespace Soda
             , name(std::move(name))
         {
         }
+        CCODE_VISITABLE(CIdentifier)
     };
 
-    struct CUnaryExpr : public CExpr
+    struct CUnaryExpr final : public CExpr
     {
         UnaryOperator op;
-        CNodeList children;
         CUnaryExpr(UnaryOperator op, Token *start, Token *end)
             : CExpr(CK_UNARY_EXPR, start, end)
             , op(op)
         {
         }
+        CCODE_VISITABLE(CUnaryExpr)
     };
 
-    struct CBinaryExpr : public CExpr
+    struct CBinaryExpr final : public CExpr
     {
         BinaryOperator op;
-        CNodeList children;
         CBinaryExpr(BinaryOperator op, Token *start, Token *end)
             : CExpr(CK_BINARY_EXPR, start, end)
             , op(op)
         {
         }
+        CCODE_VISITABLE(CBinaryExpr)
     };
 
-    struct CTypeRef : public CNode
+    struct CTypeRef final : public CNode
     {
         std::string name;
-        CNodeList children;
         bool isPointer;
         bool isConst;
         bool isArray;
@@ -222,83 +251,84 @@ namespace Soda
             , isArray(false)
         {
         }
+        CCODE_VISITABLE(CTypeRef)
     };
 
     typedef CNodePtrType< CTypeRef > CTypeRefPtr;
 
-    struct CCastExpr : public CExpr
+    struct CCastExpr final : public CExpr
     {
-        CNodeList children;
         CCastExpr(Token *start, Token *end)
             : CExpr(CK_CAST_EXPR, start, end)
         {
         }
+        CCODE_VISITABLE(CCastExpr)
     };
 
-    struct CIfExpr : public CExpr
+    struct CIfExpr final : public CExpr
     {
-        CNodeList children;
         CIfExpr(Token *start, Token *end)
             : CExpr(CK_IF_EXPR, start, end)
         {
         }
+        CCODE_VISITABLE(CIfExpr)
     };
 
-    struct CCallExpr : public CExpr
+    struct CCallExpr final : public CExpr
     {
-        CNodeList children;
         CCallExpr(Token *start, Token *end)
             : CExpr(CK_CALL_EXPR, start, end)
         {
         }
+        CCODE_VISITABLE(CCallExpr)
     };
 
-    struct CIndexExpr : public CExpr
+    struct CIndexExpr final : public CExpr
     {
-        CNodeList children;
         CIndexExpr(Token *start, Token *end)
             : CExpr(CK_INDEX_EXPR, start, end)
         {
         }
+        CCODE_VISITABLE(CIndexExpr)
     };
 
-    struct CMemberExpr : public CExpr
+    struct CMemberExpr final : public CExpr
     {
-        CNodeList children;
         CMemberExpr(Token *start, Token *end)
             : CExpr(CK_MEMBER_EXPR, start, end)
         {
         }
+        CCODE_VISITABLE(CMemberExpr)
     };
 
-    struct CExprStmt : public CStmt
+    struct CExprStmt final : public CStmt
     {
-        CNodeList children;
         CExprStmt(Token *start, Token *end)
             : CStmt(CK_EXPR_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CExprStmt)
     };
 
-    struct CBlockStmt : public CStmt
+    struct CBlockStmt final : public CStmt
     {
-        CNodeList children;
         CBlockStmt(Token *start, Token *end)
             : CStmt(CK_BLOCK_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CBlockStmt)
     };
 
-    struct CReturnStmt : public CStmt
+    struct CReturnStmt final : public CStmt
     {
-        CNodeList children;
         CReturnStmt(Token *start, Token *end)
             : CStmt(CK_RETURN_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CBlockStmt)
     };
 
-    struct CGotoStmt : public CStmt
+    struct CGotoStmt final : public CStmt
     {
         std::string label;
         CGotoStmt(std::string label, Token *start, Token *end)
@@ -306,99 +336,100 @@ namespace Soda
             , label(std::move(label))
         {
         }
+        CCODE_VISITABLE(CGotoStmt)
     };
 
-    struct CIfStmt : public CStmt
+    struct CIfStmt final : public CStmt
     {
-        CNodeList children;
         CIfStmt(Token *start, Token *end)
             : CStmt(CK_IF_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CIfStmt)
     };
 
-    struct CDoStmt : public CStmt
+    struct CDoStmt final : public CStmt
     {
-        CNodeList children;
         CDoStmt(Token *start, Token *end)
             : CStmt(CK_DO_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CDoStmt)
     };
 
-    struct CWhileStmt : public CStmt
+    struct CWhileStmt final : public CStmt
     {
-        CNodeList children;
         CWhileStmt(Token *start, Token *end)
             : CStmt(CK_WHILE_STMT, start, end)
         {
         }
+        CCODE_VISITABLE(CWhileStmt)
     };
 
-    struct CTypedef : public CDecl
+    struct CTypedef final : public CDecl
     {
-        CNodeList children;
         CTypedef(std::string name, Token *start, Token *end)
             : CDecl(CK_TYPEDEF_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CTypedef)
     };
 
-    struct CVarDecl : public CDecl
+    struct CVarDecl final : public CDecl
     {
-        CNodeList children;
         CVarDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_VAR_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CVarDecl)
     };
 
-    struct CParamDecl : public CDecl
+    struct CParamDecl final : public CDecl
     {
-        CNodeList children;
         CParamDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_PARAM_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CParamDecl)
     };
 
-    struct CFuncDecl : public CDecl
+    struct CFuncDecl final : public CDecl
     {
-        CNodeList children;
         CFuncDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_FUNC_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CFuncDecl)
     };
 
-    struct CEnumeratorDecl : public CDecl
+    struct CEnumeratorDecl final : public CDecl
     {
-        CNodeList children;
         CEnumeratorDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_ENUMERATOR_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CEnumeratorDecl)
     };
 
-    struct CEnumDecl : public CDecl
+    struct CEnumDecl final : public CDecl
     {
-        CNodeList enumerators;
         CEnumDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_ENUM_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CEnumDecl)
     };
 
-    struct CStructDecl : public CDecl
+    struct CStructDecl final : public CDecl
     {
-        CNodeList members;
         CStructDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_STRUCT_DECL, std::move(name), start, end)
         {
         }
+        CCODE_VISITABLE(CStructDecl)
     };
 
-    struct CDefineMacro : public CMacro
+    struct CDefineMacro final : public CMacro
     {
         std::string name;
         std::string code;
@@ -419,9 +450,10 @@ namespace Soda
             , params(std::move(params))
         {
         }
+        CCODE_VISITABLE(CDefineMacro)
     };
 
-    struct CUndefMacro : public CMacro
+    struct CUndefMacro final : public CMacro
     {
         std::string name;
         CUndefMacro(
@@ -430,9 +462,10 @@ namespace Soda
             , name(std::move(name))
         {
         }
+        CCODE_VISITABLE(CUndefMacro)
     };
 
-    struct CIfMacro : public CMacro
+    struct CIfMacro final : public CMacro
     {
         std::string condText;
         CIfMacro(
@@ -441,9 +474,10 @@ namespace Soda
             , condText(std::move(condText))
         {
         }
+        CCODE_VISITABLE(CIfMacro)
     };
 
-    struct CElifMacro : public CMacro
+    struct CElifMacro final : public CMacro
     {
         std::string condText;
         std::string code;
@@ -454,31 +488,35 @@ namespace Soda
             , code(std::move(code))
         {
         }
+        CCODE_VISITABLE(CElifMacro)
     };
 
-    struct CElseMacro : public CMacro
+    struct CElseMacro final : public CMacro
     {
         CElseMacro(Token *start = nullptr, Token *end = nullptr)
             : CMacro(CK_ELSE_MACRO, start, end)
         {
         }
+        CCODE_VISITABLE(CElseMacro)
     };
 
-    struct CEndifMacro : public CMacro
+    struct CEndifMacro final : public CMacro
     {
         CEndifMacro(Token *start = nullptr, Token *end = nullptr)
             : CMacro(CK_ENDIF_MACRO, start, end)
         {
         }
+        CCODE_VISITABLE(CEndifMacro)
     };
 
-    struct CFile : CNode
+    struct CFile final : CNode
     {
         CNodeList children;
         CFile(Token *start = nullptr, Token *end = nullptr)
             : CNode(CK_FILE, start, end)
         {
         }
+        CCODE_VISITABLE(CFile)
     };
 
     typedef CNodePtrType< CFile > CFilePtr;

@@ -15,7 +15,8 @@ SOURCES += \
     Soda/Tokenizer.cpp \
     Soda/Visitor.cpp \
     Soda/Operators.cpp \
-    Soda/CCodeTreeGen.cpp
+    Soda/CCodeTreeGen.cpp \
+    Soda/CCodeVisitor.cpp
 
 HEADERS += \
     Soda/Ast.h \
@@ -36,4 +37,4 @@ HEADERS += \
     Soda/Operators.h \
     Soda/CCode.h \
     Soda/CCodeTreeGen.h \
-    Soda/ccodevisitor.h
+    Soda/CCodeVisitor.h

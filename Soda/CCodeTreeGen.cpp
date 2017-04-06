@@ -8,13 +8,13 @@
 namespace Soda
 {
 
-    struct CCodeTreeGenHeader : public AstDefaultVisitor
+    struct CCodeTreeGenBase : public AstDefaultVisitor
     {
         Compiler &compiler;
         CFile &file;
         std::stack< CNodeList * > contextStack;
 
-        CCodeTreeGenHeader(Compiler &compiler, CFile &file)
+        CCodeTreeGenBase(Compiler &compiler, CFile &file)
             : compiler(compiler)
             , file(file)
         {
@@ -46,6 +46,14 @@ namespace Soda
         T *emplace(Args &&... args)
         {
             return add(std::make_unique< T >(std::forward< Args >(args)...));
+        }
+    };
+
+    struct CCodeTreeGenHeader : public CCodeTreeGenBase
+    {
+        CCodeTreeGenHeader(Compiler &compiler, CFile &file)
+            : CCodeTreeGenBase(compiler, file)
+        {
         }
 
         virtual void visit(AstNil &n) override final
@@ -200,41 +208,48 @@ namespace Soda
         virtual void visit(AstEnumDecl &n) override final
         {
             auto enu = emplace< CEnumDecl >(n.mangledName, n.start, n.end);
-            openContext(enu->enumerators);
+            openContext(enu->children);
             n.acceptChildren(*this);
-            closeContext(enu->enumerators);
+            closeContext(enu->children);
         }
 
         // todo: handle base types
         virtual void visit(AstStructDecl &n) override final
         {
             auto str = emplace< CStructDecl >(n.mangledName, n.start, n.end);
-            openContext(str->members);
+            openContext(str->children);
             n.acceptChildren(*this);
-            closeContext(str->members);
+            closeContext(str->children);
         }
 
         virtual void visit(AstModule &n) override final
         {
-            file.children.push_back(std::make_unique< CIfMacro >(
-                "!defined(" + n.identifierName() + "_INCLUDED__)", n.start,
-                n.end));
-            file.children.push_back(std::make_unique< CDefineMacro >(
-                n.identifierName() + "_INCLUDED__", "", n.start, n.end));
+            emplace< CIfMacro >(
+                "!defined(" + n.identifierName() + "_HEADER_INCLUDED__)",
+                n.start, n.end);
+            emplace< CDefineMacro >(
+                n.identifierName() + "_HEADER_INCLUDED__", "", n.start, n.end);
             n.acceptChildren(*this);
-            file.children.push_back(
-                std::make_unique< CEndifMacro >(n.start, n.end));
+            emplace< CEndifMacro >(n.start, n.end);
         }
     };
 
-    struct CCodeTreeGenSource : public AstDefaultVisitor
+    struct CCodeTreeGenSource : public CCodeTreeGenBase
     {
-        Compiler &compiler;
-        CFile &file;
         CCodeTreeGenSource(Compiler &compiler, CFile &file)
-            : compiler(compiler)
-            , file(file)
+            : CCodeTreeGenBase(compiler, file)
         {
+        }
+
+        virtual void visit(AstModule &n) override final
+        {
+            emplace< CIfMacro >(
+                "!defined(" + n.identifierName() + "_SOURCE_INCLUDED__)",
+                n.start, n.end);
+            emplace< CDefineMacro >(
+                n.identifierName() + "_SOURCE_INCLUDED__", "", n.start, n.end);
+            n.acceptChildren(*this);
+            emplace< CEndifMacro >(n.start, n.end);
         }
     };
 
