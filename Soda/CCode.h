@@ -21,6 +21,7 @@ namespace Soda
         CK_UNARY_EXPR,
         CK_BINARY_EXPR,
         CK_CAST_EXPR,
+        CK_IF_EXPR,
         CK_CALL_EXPR,
         CK_INDEX_EXPR,
         CK_MEMBER_EXPR,
@@ -31,6 +32,7 @@ namespace Soda
         CK_IF_STMT,
         CK_DO_STMT,
         CK_WHILE_STMT,
+        CK_TYPEDEF_DECL,
         CK_VAR_DECL,
         CK_PARAM_DECL,
         CK_FUNC_DECL,
@@ -43,14 +45,15 @@ namespace Soda
         CK_ELIF_MACRO,
         CK_ELSE_MACRO,
         CK_ENDIF_MACRO,
+        CK_TYPEREF,
         CK_FILE,
     };
 
     template < class... Args >
-    using CNodePtrType = std::unique_ptr< Args >;
+    using CNodePtrType = std::unique_ptr< Args... >;
 
     template < class... Args >
-    using CNodeListType = std::vector< Args >;
+    using CNodeListType = std::vector< Args... >;
 
     struct CNode
     {
@@ -116,13 +119,18 @@ namespace Soda
 
     struct CNullLit : public CExpr
     {
+        CNullLit(Token *start, Token *end)
+            : CExpr(CK_NULL_LIT, start, end)
+        {
+        }
     };
 
     struct CBoolLit : public CExpr
     {
         bool value;
-        CBoolLit(bool value)
-            : value(value)
+        CBoolLit(bool value, Token *start, Token *end)
+            : CExpr(CK_BOOL_LIT, start, end)
+            , value(value)
         {
         }
     };
@@ -130,8 +138,7 @@ namespace Soda
     struct CIntLit : public CExpr
     {
         unsigned long long value;
-        CIntLit(unsigned long long value, Token *start = nullptr,
-            Token *end = nullptr)
+        CIntLit(unsigned long long value, Token *start, Token *end)
             : CExpr(CK_INT_LIT, start, end)
             , value(value)
         {
@@ -151,8 +158,7 @@ namespace Soda
     struct CCharLit : public CExpr
     {
         std::string value;
-        CCharLit(
-            std::string value, Token *start = nullptr, Token *end = nullptr)
+        CCharLit(std::string value, Token *start, Token *end)
             : CExpr(CK_CHAR_LIT, start, end)
             , value(std::move(value))
         {
@@ -162,8 +168,7 @@ namespace Soda
     struct CStringLit : public CExpr
     {
         std::string value;
-        CStringLit(
-            std::string value, Token *start = nullptr, Token *end = nullptr)
+        CStringLit(std::string value, Token *start, Token *end)
             : CExpr(CK_STRING_LIT, start, end)
             , value(std::move(value))
         {
@@ -173,8 +178,7 @@ namespace Soda
     struct CIdentifier : public CExpr
     {
         std::string name;
-        CIdentifier(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        CIdentifier(std::string name, Token *start, Token *end)
             : CExpr(CK_IDENTIFIER, start, end)
             , name(std::move(name))
         {
@@ -184,12 +188,10 @@ namespace Soda
     struct CUnaryExpr : public CExpr
     {
         UnaryOperator op;
-        CExprPtr operand;
-        CUnaryExpr(UnaryOperator op, CExprPtr operand, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CUnaryExpr(UnaryOperator op, Token *start, Token *end)
             : CExpr(CK_UNARY_EXPR, start, end)
             , op(op)
-            , operand(std::move(operand))
         {
         }
     };
@@ -197,22 +199,24 @@ namespace Soda
     struct CBinaryExpr : public CExpr
     {
         BinaryOperator op;
-        CExprPtr left;
-        CExprPtr right;
+        CNodeList children;
+        CBinaryExpr(BinaryOperator op, Token *start, Token *end)
+            : CExpr(CK_BINARY_EXPR, start, end)
+            , op(op)
+        {
+        }
     };
 
     struct CTypeRef : public CNode
     {
         std::string name;
-        CTypeRef typeRef;
+        CNodeList children;
         bool isPointer;
         bool isConst;
         bool isArray;
-        CTypeRef(std::string name, CTypeRef typeRef, Token *start = nullptr,
-            Token *end = nullptr)
+        CTypeRef(std::string name, Token *start, Token *end)
             : CNode(CK_TYPEREF, start, end)
             , name(std::move(name))
-            , typeRef(std::move(typeRef))
             , isPointer(false)
             , isConst(false)
             , isArray(false)
@@ -224,86 +228,72 @@ namespace Soda
 
     struct CCastExpr : public CExpr
     {
-        CTypeRef *typeRef;
-        CExprPtr expr;
-        CCastExpr(CTypeRef *typeRef, CExprPtr expr)
+        CNodeList children;
+        CCastExpr(Token *start, Token *end)
             : CExpr(CK_CAST_EXPR, start, end)
-            , typeRef(typeRef)
-            , expr(std::move(expr))
+        {
+        }
+    };
+
+    struct CIfExpr : public CExpr
+    {
+        CNodeList children;
+        CIfExpr(Token *start, Token *end)
+            : CExpr(CK_IF_EXPR, start, end)
         {
         }
     };
 
     struct CCallExpr : public CExpr
     {
-        CExprPtr callee;
-        CNodeList arguments;
-        CCallExpr(CExprPtr callee, CExprList arguments, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CCallExpr(Token *start, Token *end)
             : CExpr(CK_CALL_EXPR, start, end)
-            , callee(std::move(callee))
-            , arguments(std::move(arguments))
         {
         }
     };
 
     struct CIndexExpr : public CExpr
     {
-        CExprPtr object;
-        CExprPtr index;
-        CIndexExpr(CExprPtr object, CExprPtr index, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CIndexExpr(Token *start, Token *end)
             : CExpr(CK_INDEX_EXPR, start, end)
-            , object(std::move(object))
-            , index(std::move(index))
         {
         }
     };
 
     struct CMemberExpr : public CExpr
     {
-        CExprPtr object;
-        std::string member;
-        CMemberExpr(CExprPtr object, std::string member, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CMemberExpr(Token *start, Token *end)
             : CExpr(CK_MEMBER_EXPR, start, end)
-            , object(std::move(object))
-            , member(std::move(member))
         {
         }
     };
 
     struct CExprStmt : public CStmt
     {
-        CExprPtr expr;
-        CExprStmt(CExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CExprStmt(Token *start, Token *end)
             : CStmt(CK_EXPR_STMT, start, end)
-            , expr(std::move(expr))
         {
         }
     };
 
     struct CBlockStmt : public CStmt
     {
-        CNodeList stmts;
-        CBlockStmt(Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CBlockStmt(Token *start, Token *end)
             : CStmt(CK_BLOCK_STMT, start, end)
-        {
-        }
-        CBlockStmt(
-            CStmtList stmts, Token *start = nullptr, Token *end = nullptr)
-            : CBlockStmt(start, end)
-            , stms(std::move(stmts))
         {
         }
     };
 
     struct CReturnStmt : public CStmt
     {
-        CExprPtr expr;
-        CReturnStmt(CExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CReturnStmt(Token *start, Token *end)
             : CStmt(CK_RETURN_STMT, start, end)
-            , expr(std::move(expr))
         {
         }
     };
@@ -311,8 +301,7 @@ namespace Soda
     struct CGotoStmt : public CStmt
     {
         std::string label;
-        CGotoStmt(
-            std::string label, Token *start = nullptr, Token *end = nullptr)
+        CGotoStmt(std::string label, Token *start, Token *end)
             : CStmt(CK_GOTO_STMT, start, end)
             , label(std::move(label))
         {
@@ -321,106 +310,72 @@ namespace Soda
 
     struct CIfStmt : public CStmt
     {
-        CExprPtr condExpr;
-        CStmtPtr thenStmt;
-        CStmtPtr elseStmt;
-        CIfStmt(CExprPtr condExpr, CStmtPtr thenStmt, CStmtPtr elseStmt,
-            Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CIfStmt(Token *start, Token *end)
             : CStmt(CK_IF_STMT, start, end)
-            , condExpr(std::move(condExpr))
-            , thenStmt(std::move(thenStmt))
-            , elseStmt(std::move(elseStmt))
         {
         }
     };
 
     struct CDoStmt : public CStmt
     {
-        CStmtPtr stmt;
-        CExprPtr expr;
-        CDoStmt(CStmtPtr stmt, CExprPtr expr, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CDoStmt(Token *start, Token *end)
             : CStmt(CK_DO_STMT, start, end)
-            , stmt(std::move(stmt))
-            , expr(std::move(expr))
         {
         }
     };
 
     struct CWhileStmt : public CStmt
     {
-        CExprPtr expr;
-        CStmtPtr stmt;
-        CWhileStmt(CExprPtr expr, CStmtPtr stmt, Token *start = nullptr,
-            Token *end = nullptr)
+        CNodeList children;
+        CWhileStmt(Token *start, Token *end)
             : CStmt(CK_WHILE_STMT, start, end)
-            , expr(std::move(expr))
-            , stmt(std::move(stmt))
+        {
+        }
+    };
+
+    struct CTypedef : public CDecl
+    {
+        CNodeList children;
+        CTypedef(std::string name, Token *start, Token *end)
+            : CDecl(CK_TYPEDEF_DECL, std::move(name), start, end)
         {
         }
     };
 
     struct CVarDecl : public CDecl
     {
-        CTypeRefPtr typeRef;
-        CExprPtr initExpr;
-        CVarDecl(std::string name, CTypeRefPtr typeRef, CExprPtr initExpr,
-            Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CVarDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_VAR_DECL, std::move(name), start, end)
-            , typeRef(std::move(typeRef))
-            , initExpr(std::move(initExpr))
         {
         }
     };
 
     struct CParamDecl : public CDecl
     {
-        CTypeRefPtr typeRef;
-        CParamDecl(std::string name, CTypeRefPtr typeRef,
-            Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CParamDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_PARAM_DECL, std::move(name), start, end)
-            , typeRef(std::move(typeRef))
         {
         }
     };
 
     struct CFuncDecl : public CDecl
     {
-        CNodeList parameters;
-        CNodeList statements;
-        CFuncDecl(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CFuncDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_FUNC_DECL, std::move(name), start, end)
-        {
-        }
-        CFuncDecl(std::string name, CDeclList parameters,
-            Token *start = nullptr, Token *end = nullptr)
-            : CFuncDecl(std::move(name), start, end)
-            , parameters(std::move(parameters))
-        {
-        }
-        CFuncDecl(std::string name, CStmtList statements,
-            Token *start = nullptr, Token *end = nullptr)
-            : CFuncDecl(std::move(name), start, end)
-            , statements(std::move(statements))
-        {
-        }
-        CFuncDecl(std::string name, CDeclList parameters, CStmtList statements,
-            Token *start = nullptr, Token *end = nullptr)
-            : CFuncDecl(std::move(name), start, end)
-            , parameters(std::move(parameters))
-            , statements(std::move(statements))
         {
         }
     };
 
     struct CEnumeratorDecl : public CDecl
     {
-        CExprPtr initExpr;
-        CEnumeratorDecl(std::string name, CExprPtr initExpr,
-            Token *start = nullptr, Token *end = nullptr)
+        CNodeList children;
+        CEnumeratorDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_ENUMERATOR_DECL, std::move(name), start, end)
-            , initExpr(std::move(initExpr))
         {
         }
     };
@@ -428,15 +383,8 @@ namespace Soda
     struct CEnumDecl : public CDecl
     {
         CNodeList enumerators;
-        CEnumDecl(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        CEnumDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_ENUM_DECL, std::move(name), start, end)
-        {
-        }
-        CEnumDecl(std::string name, CNodeList enumerators,
-            Token *start = nullptr, Token *end = nullptr)
-            : CEnumDecl(std::move(name), start, end)
-            , enumerators(std::move(enumerators))
         {
         }
     };
@@ -444,15 +392,8 @@ namespace Soda
     struct CStructDecl : public CDecl
     {
         CNodeList members;
-        CStructDecl(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        CStructDecl(std::string name, Token *start, Token *end)
             : CDecl(CK_STRUCT_DECL, std::move(name), start, end)
-        {
-        }
-        CStructDecl(std::string name, CNodeList members, Token *start = nullptr,
-            Token *end = nullptr)
-            : CStructDecl(std::move(name), start, end)
-            , members(std::move(members))
         {
         }
     };
@@ -462,17 +403,19 @@ namespace Soda
         std::string name;
         std::string code;
         std::vector< std::string > params;
-        CDefineMacro(std::string name, std::string code, Node *start = nullptr,
-            Node *end = nullptr)
+        CDefineMacro(std::string name, std::string code, Token *start = nullptr,
+            Token *end = nullptr)
             : CMacro(CK_DEFINE_MACRO, start, end)
             , name(std::move(name))
             , code(std::move(code))
         {
         }
         CDefineMacro(std::string name, std::string code,
-            std::vector< std::string > params, Node *start = nullptr,
-            Node *end = nullptr)
-            : CDefineMacro(std::move(name), std::move(code), start, end)
+            std::vector< std::string > params, Token *start = nullptr,
+            Token *end = nullptr)
+            : CMacro(CK_DEFINE_MACRO, start, end)
+            , name(std::move(name))
+            , code(std::move(code))
             , params(std::move(params))
         {
         }
@@ -482,7 +425,7 @@ namespace Soda
     {
         std::string name;
         CUndefMacro(
-            std::string name, Node *start = nullptr, Node *end = nullptr)
+            std::string name, Token *start = nullptr, Token *end = nullptr)
             : CMacro(CK_UNDEF_MACRO, start, end)
             , name(std::move(name))
         {
@@ -493,7 +436,7 @@ namespace Soda
     {
         std::string condText;
         CIfMacro(
-            std::string condText, Node *start = nullptr, Node *end = nullptr)
+            std::string condText, Token *start = nullptr, Token *end = nullptr)
             : CMacro(CK_IF_MACRO, start, end)
             , condText(std::move(condText))
         {
@@ -505,7 +448,7 @@ namespace Soda
         std::string condText;
         std::string code;
         CElifMacro(std::string condText, std::string code,
-            Node *start = nullptr, Node *end = nullptr)
+            Token *start = nullptr, Token *end = nullptr)
             : CMacro(CK_ELIF_MACRO, start, end)
             , condText(std::move(condText))
             , code(std::move(code))

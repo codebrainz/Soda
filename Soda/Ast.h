@@ -299,6 +299,7 @@ namespace Soda
     struct AstTypeRef final : public AstNode
     {
         std::string name;
+        std::string mangledName;
         NodePtrType< AstTypeRef > refType;
         TypeFlags typeFlags;
         AstTypeRef(std::string name, TypeFlags typeFlags = TF_NONE,
@@ -416,8 +417,8 @@ namespace Soda
     struct AstMemberExpr final : public AstExpr
     {
         AstExprPtr object;
-        std::string member;
-        AstMemberExpr(AstExprPtr object, std::string member,
+        AstExprPtr member;
+        AstMemberExpr(AstExprPtr object, AstExprPtr member,
             Token *start = nullptr, Token *end = nullptr)
             : AstExpr(NK_MEMBER_EXPR, start, end)
             , object(std::move(object))
@@ -427,6 +428,7 @@ namespace Soda
         virtual void acceptChildren(AstVisitor &v) override final
         {
             object->accept(v);
+            member->accept(v);
         }
         AST_VISITABLE(MemberExpr)
     };

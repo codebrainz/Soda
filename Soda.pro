@@ -35,4 +35,5 @@ HEADERS += \
     Soda/Visitor.h \
     Soda/Operators.h \
     Soda/CCode.h \
-    Soda/CCodeTreeGen.h
+    Soda/CCodeTreeGen.h \
+    Soda/ccodevisitor.h

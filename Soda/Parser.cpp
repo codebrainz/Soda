@@ -294,10 +294,8 @@ namespace Soda
                         std::move(expr), std::move(args), startToken, endToken);
                     startToken = currentToken();
                 } else if (accept('.')) {
-                    auto member = tokenText();
-                    auto endToken = currentToken();
-                    if (!expect(TK_IDENT))
-                        return nullptr;
+                    auto member = parseExpr();
+                    auto endToken = member->end;
                     expr = std::make_unique< AstMemberExpr >(std::move(expr),
                         std::move(member), startToken, endToken);
                     startToken = currentToken();

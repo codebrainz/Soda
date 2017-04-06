@@ -33,7 +33,8 @@ namespace Soda
             contextStack.pop();
         }
 
-        CNode *add(CNodePtr node)
+        template < class T >
+        T *add(CNodePtrType< T > node)
         {
             assert(!contextStack.empty());
             auto ptr = node.get();
@@ -42,9 +43,166 @@ namespace Soda
         }
 
         template < class T, class... Args >
-        CNode *emplace(Args &&... args)
+        T *emplace(Args &&... args)
         {
             return add(std::make_unique< T >(std::forward< Args >(args)...));
+        }
+
+        virtual void visit(AstNil &n) override final
+        {
+            emplace< CNullLit >(n.start, n.end);
+        }
+
+        virtual void visit(AstBool &n) override final
+        {
+            emplace< CBoolLit >(n.value, n.start, n.end);
+        }
+
+        virtual void visit(AstInt &n) override final
+        {
+            emplace< CIntLit >(n.value, n.start, n.end);
+        }
+
+        virtual void visit(AstFloat &n) override final
+        {
+            emplace< CFloatLit >(n.value, n.start, n.end);
+        }
+
+        virtual void visit(AstChar &n) override final
+        {
+            emplace< CCharLit >(n.value, n.start, n.end);
+        }
+
+        virtual void visit(AstString &n) override final
+        {
+            emplace< CStringLit >(n.value, n.start, n.end);
+        }
+
+        virtual void visit(AstIdentifier &n) override final
+        {
+            emplace< CIdentifier >(
+                n.refSymbol->decl->mangledName, n.start, n.end);
+        }
+
+        virtual void visit(AstUnary &n) override final
+        {
+            auto exp = emplace< CUnaryExpr >(n.op, n.start, n.end);
+            openContext(exp->children);
+            n.acceptChildren(*this);
+            closeContext(exp->children);
+        }
+
+        virtual void visit(AstBinary &n) override final
+        {
+            auto exp = emplace< CBinaryExpr >(n.op, n.start, n.end);
+            openContext(exp->children);
+            n.acceptChildren(*this);
+            closeContext(exp->children);
+        }
+
+        virtual void visit(AstTypeRef &n) override final
+        {
+            auto tref = emplace< CTypeRef >(n.mangledName, n.start, n.end);
+            tref->isConst = n.typeFlags & TF_CONST;
+            tref->isPointer = n.typeFlags & TF_POINTER;
+            tref->isArray = n.typeFlags & TF_ARRAY;
+            openContext(tref->children);
+            n.acceptChildren(*this);
+            closeContext(tref->children);
+        }
+
+        virtual void visit(AstCast &n) override final
+        {
+            auto cast = emplace< CCastExpr >(n.start, n.end);
+            openContext(cast->children);
+            n.acceptChildren(*this);
+            closeContext(cast->children);
+        }
+
+        virtual void visit(AstIfExpr &n) override final
+        {
+            auto ifexp = emplace< CIfExpr >(n.start, n.end);
+            openContext(ifexp->children);
+            n.acceptChildren(*this);
+            closeContext(ifexp->children);
+        }
+
+        virtual void visit(AstCallExpr &n) override final
+        {
+            auto call = emplace< CCallExpr >(n.start, n.end);
+            openContext(call->children);
+            n.acceptChildren(*this);
+            closeContext(call->children);
+        }
+
+        virtual void visit(AstIndexExpr &n) override final
+        {
+            auto ind = emplace< CIndexExpr >(n.start, n.end);
+            openContext(ind->children);
+            n.acceptChildren(*this);
+            closeContext(ind->children);
+        }
+
+        virtual void visit(AstMemberExpr &n) override final
+        {
+            auto mem = emplace< CMemberExpr >(n.start, n.end);
+            openContext(mem->children);
+            n.acceptChildren(*this);
+            closeContext(mem->children);
+        }
+
+        virtual void visit(AstTypedef &n) override final
+        {
+            auto tdef = emplace< CTypedef >(n.mangledName, n.start, n.end);
+            openContext(tdef->children);
+            n.acceptChildren(*this);
+            closeContext(tdef->children);
+        }
+
+        virtual void visit(AstVarDecl &n) override final
+        {
+            auto var = emplace< CVarDecl >(n.mangledName, n.start, n.end);
+            openContext(var->children);
+            n.typeRef->accept(*this);
+            if (n.initExpr)
+                n.initExpr->accept(*this);
+            closeContext(var->children);
+        }
+
+        virtual void visit(AstParamDecl &n) override final
+        {
+            auto param = emplace< CParamDecl >(n.mangledName, n.start, n.end);
+            openContext(param->children);
+            n.acceptChildren(*this);
+            closeContext(param->children);
+            assert(!param->children.size());
+        }
+
+        virtual void visit(AstFuncDecl &n) override final
+        {
+            auto fun = emplace< CFuncDecl >(n.mangledName, n.start, n.end);
+            openContext(fun->children);
+            n.typeRef->accept(*this);
+            for (auto &param : n.params)
+                param->accept(*this);
+            closeContext(fun->children);
+        }
+
+        virtual void visit(AstEnumeratorDecl &n) override final
+        {
+            auto etor
+                = emplace< CEnumeratorDecl >(n.mangledName, n.start, n.end);
+            openContext(etor->children);
+            n.acceptChildren(*this);
+            closeContext(etor->children);
+        }
+
+        virtual void visit(AstEnumDecl &n) override final
+        {
+            auto enu = emplace< CEnumDecl >(n.mangledName, n.start, n.end);
+            openContext(enu->enumerators);
+            n.acceptChildren(*this);
+            closeContext(enu->enumerators);
         }
 
         // todo: handle base types
@@ -54,18 +212,6 @@ namespace Soda
             openContext(str->members);
             n.acceptChildren(*this);
             closeContext(str->members);
-        }
-
-        virtual void visit(AstEnumDecl &n) override final
-        {
-            auto enu = emplace< CEnumDecl >(n.mangledName, n.start, n.end);
-            openContext(enu->enumerators);
-            for (auto &etor : enu->enumerators) {
-                // todo: compute and use init exprs
-                enu->enumerators.push_back(std::make_unique< CEnumeratorDecl >(
-                    etor->mangledName, nullptr, etor->start, etor->end));
-            }
-            closeContext(enu->enumerators);
         }
 
         virtual void visit(AstModule &n) override final
@@ -99,13 +245,13 @@ namespace Soda
         auto file = std::make_unique< CFile >();
         if (static_cast< UT >(kind)
             & static_cast< UT >(CCodeTreeKind::HEADER)) {
-            CCodeTreeGenHeader hdrGen(compiler, file);
-            astNode.accept(hdrGen);
+            CCodeTreeGenHeader hdrGen(compiler, *file);
+            node.accept(hdrGen);
         }
         if (static_cast< UT >(kind)
             & static_cast< UT >(CCodeTreeKind::SOURCE)) {
-            CCodeTreeGenSource srcGen(compiler, file);
-            astNode.accept(compiler, file);
+            CCodeTreeGenSource srcGen(compiler, *file);
+            node.accept(srcGen);
         }
         return file;
     }
