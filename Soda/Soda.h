@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ast.h"
-#include "CCode.h"
 #include "Compiler.h"
 #include "DotGenerator.h"
 #include "Logger.h"
@@ -11,6 +10,7 @@
 #include "Parser.h"
 #include "ScopeBuilder.h"
 #include "ScopeVisitor.h"
+#include "Sema.h"
 #include "SourceFile.h"
 #include "SymbolResolver.h"
 #include "SymbolTable.h"

@@ -5,6 +5,7 @@
 #include "NameMangler.h"
 #include "Parser.h"
 #include "ScopeBuilder.h"
+#include "Sema.h"
 #include "SourceFile.h"
 #include "SymbolResolver.h"
 #include "SymbolTable.h"
@@ -41,6 +42,8 @@ namespace Soda
                 failures += resolveSymbols(*this, *mod);
             for (auto &mod : modules)
                 mangleNames(*this, *mod);
+            for (auto &mod : modules)
+                analyzeSemantics(*this, *mod);
             return failures;
         }
 
