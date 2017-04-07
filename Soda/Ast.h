@@ -42,9 +42,11 @@ namespace Soda
         NK_CONTINUE_STMT,
         NK_GOTO_STMT,
         NK_IF_STMT,
+        NK_DO_STMT,
         NK_WHILE_STMT,
         NK_EMPTY_DECL,
         NK_COMMENT_DECL,
+        NK_LABEL_DECL,
         NK_USING_DECL,
         NK_TYPENAME,
         NK_TYPEDEF_DECL,
@@ -534,10 +536,12 @@ namespace Soda
     struct AstGotoStmt final : public AstStmt
     {
         std::string label;
+        Symbol *refSymbol;
         AstGotoStmt(
             std::string label, Token *start = nullptr, Token *end = nullptr)
             : AstStmt(NK_GOTO_STMT, start, end)
             , label(std::move(label))
+            , refSymbol(nullptr)
         {
         }
         AST_VISITABLE(GotoStmt)
@@ -564,6 +568,25 @@ namespace Soda
                 elseStmt->accept(v);
         }
         AST_VISITABLE(IfStmt)
+    };
+
+    struct AstDoStmt final : public AstStmt
+    {
+        AstStmtPtr stmt;
+        AstExprPtr expr;
+        AstDoStmt(AstStmtPtr stmt, AstExprPtr expr, Token *start = nullptr,
+            Token *end = nullptr)
+            : AstStmt(NK_DO_STMT, start, end)
+            , stmt(std::move(stmt))
+            , expr(std::move(expr))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            stmt->accept(v);
+            expr->accept(v);
+        }
+        AST_VISITABLE(DoStmt)
     };
 
     struct AstWhileStmt final : public AstStmt
@@ -604,6 +627,22 @@ namespace Soda
         {
         }
         AST_VISITABLE(Comment)
+    };
+
+    struct AstLabelDecl final : public AstDecl
+    {
+        AstStmtPtr stmt;
+        AstLabelDecl(std::string name, AstStmtPtr stmt, Token *start = nullptr,
+            Token *end = nullptr)
+            : AstDecl(DF_NONE, std::move(name), NK_LABEL_DECL, start, end)
+            , stmt(std::move(stmt))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            stmt->accept(v);
+        }
+        AST_VISITABLE(LabelDecl)
     };
 
     struct AstUsingDecl final : public AstDecl

@@ -11,13 +11,13 @@ namespace Soda
         case UOP_NEG:
             return "-";
         case UOP_PREINC:
-            return "++";
+            return "++_";
         case UOP_PREDEC:
-            return "--";
+            return "--_";
         case UOP_POSTINC:
-            return "++";
+            return "_++";
         case UOP_POSTDEC:
-            return "--";
+            return "_--";
         case UOP_COMPL:
             return "~";
         case UOP_NOT:

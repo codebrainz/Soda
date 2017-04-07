@@ -12,6 +12,7 @@ namespace Soda
     enum SymbolKind
     {
         SK_BUILTIN,
+        SK_LABEL,
         SK_TYPEDEF,
         SK_USING,
         SK_FUNCTION,

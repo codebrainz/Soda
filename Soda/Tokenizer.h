@@ -50,6 +50,7 @@ namespace Soda
         TK_GOTO,
         TK_RETURN,
         TK_FOR,
+        TK_DO,
         TK_WHILE,
         TK_STRUCT,
         TK_ENUM,

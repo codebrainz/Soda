@@ -94,6 +94,7 @@ namespace Soda
             return accept(static_cast< TokenKind >(kind));
         }
 
+#if 1
         bool expect(TokenKind kind)
         {
             if (!accept(kind)) {
@@ -109,6 +110,20 @@ namespace Soda
         {
             return expect(static_cast< TokenKind >(kind));
         }
+#else
+        bool expect_(const char *file, unsigned int line, TokenKind kind)
+        {
+            if (!accept(kind)) {
+                compiler.error(tokens[offset],
+                    "unexpected token '%', expecting '%' [%:%]",
+                    tokens[offset].getKindName(), tokenKindName(kind), file,
+                    line);
+                return false;
+            }
+            return true;
+        }
+#define expect(kind) expect_(__FILE__, __LINE__, TokenKind(kind))
+#endif
 
         template < class NodePtrT >
         bool isIgnored(NodePtrT &node)
@@ -881,6 +896,50 @@ namespace Soda
                 std::move(thenStmt), std::move(elseStmt), startToken, endToken);
         }
 
+        //> do_stmt: DO stmt WHILE '(' expr ')'
+        //>        ;
+        AstStmtPtr parseDoStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_DO))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            if (!expect(TK_WHILE))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            auto expr = parseExpr();
+            auto endToken = currentToken();
+            if (!expect(')'))
+                return nullptr;
+            return std::make_unique< AstDoStmt >(
+                std::move(stmt), std::move(expr), startToken, endToken);
+        }
+
+        //> while_stmt: WHILE '(' expr ')' stmt
+        //>           ;
+        AstStmtPtr parseWhileStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_WHILE))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            auto expr = parseExpr();
+            if (!expr)
+                return nullptr;
+            if (!expect(')'))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstWhileStmt >(
+                std::move(expr), std::move(stmt), startToken, endToken);
+        }
+
         //> local_stmt: ';'
         //>           | COMMENT
         //>           | block_stmt
@@ -917,6 +976,12 @@ namespace Soda
                 return parseGotoStmt();
             else if (kind == TK_IF)
                 return parseIfStmt();
+            else if (kind == TK_DO)
+                return parseDoStmt();
+            else if (kind == TK_WHILE)
+                return parseWhileStmt();
+            else if (kind == TK_IDENT && peekToken().kind == ':')
+                return parseLabelDecl();
             else if (auto decl = parseDecl())
                 return std::move(decl);
             else if (auto stmt = parseExprStmt())
@@ -939,6 +1004,24 @@ namespace Soda
                 }
             }
             return stmts;
+        }
+
+        //> label_decl: IDENT ':'
+        //>           ;
+        AstDeclPtr parseLabelDecl()
+        {
+            auto startToken = currentToken();
+            auto text = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            if (!expect(':'))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstLabelDecl >(
+                std::move(text), std::move(stmt), startToken, endToken);
         }
 
         //> type_member: TK_IDENT
@@ -1033,7 +1116,7 @@ namespace Soda
             if (!typeRef)
                 return nullptr;
             auto name = tokenText();
-            if (!expect(TK_IDENT))
+            if (!accept(TK_IDENT))
                 return nullptr;
             AstDeclList params;
             // Function
@@ -1225,8 +1308,8 @@ namespace Soda
                 std::move(name), std::move(enumerators), startToken, endToken);
         }
 
-        //> namespace: NAMESPACE IDENT ';'
-        //>          | NAMESPACE IDENT '{' decl* '}'
+        //> namespace: NAMESPACE dotted_name ';'
+        //>          | NAMESPACE dotted_name '{' decl* '}'
         //>          ;
         AstDeclPtr parseNamespace()
         {
@@ -1236,6 +1319,7 @@ namespace Soda
             auto name = tokenText();
             if (!expect(TK_IDENT))
                 return nullptr;
+            //std::cerr << ">>> " << name << std::endl;
             AstStmtList stmts;
             auto endToken = currentToken();
             if (!accept(';')) {

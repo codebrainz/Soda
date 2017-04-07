@@ -22,6 +22,7 @@ namespace Soda
         virtual void visit(AstIdentifier &n) override final
         {
             n.refSymbol = lookup(n, n.name, true);
+            // TODO: lookup name/type members like Foo.Bar.x
         }
 
         virtual void visit(AstBlockStmt &n) override final
@@ -29,6 +30,11 @@ namespace Soda
             openScope(n);
             n.acceptChildren(*this);
             closeScope(n);
+        }
+
+        virtual void visit(AstGotoStmt &n) override final
+        {
+            n.refSymbol = lookup(n, n.label, false);
         }
 
         virtual void visit(AstUsingDecl &) override final

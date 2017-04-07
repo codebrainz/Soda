@@ -92,7 +92,7 @@ namespace Soda
             n.acceptChildren(*this);
         }
 
-        void handleIdentNode(AstIdentifier &n)
+        void handleIdentifierNode(AstIdentifier &n)
         {
             if (n.refSymbol) {
                 auto id = idTable.nodeId(n);
@@ -159,7 +159,7 @@ namespace Soda
         }
         virtual void visit(AstIdentifier &n) override final
         {
-            handleIdentNode(n);
+            handleIdentifierNode(n);
         }
         virtual void visit(AstUnary &n) override final
         {
@@ -229,6 +229,10 @@ namespace Soda
         {
             handleNode(n);
         }
+        virtual void visit(AstDoStmt &n) override final
+        {
+            handleNode(n);
+        }
         virtual void visit(AstWhileStmt &n) override final
         {
             handleNode(n);
@@ -240,6 +244,10 @@ namespace Soda
         virtual void visit(AstCommentDecl &n) override final
         {
             handleNode(n);
+        }
+        virtual void visit(AstLabelDecl &n) override final
+        {
+            handleNamedNode(n);
         }
         virtual void visit(AstUsingDecl &n) override final
         {
@@ -416,6 +424,10 @@ namespace Soda
         {
             handleEdge(n);
         }
+        virtual void visit(AstDoStmt &n) override final
+        {
+            handleEdge(n);
+        }
         virtual void visit(AstWhileStmt &n) override final
         {
             handleEdge(n);
@@ -425,6 +437,10 @@ namespace Soda
             handleEdge(n);
         }
         virtual void visit(AstCommentDecl &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstLabelDecl &n) override final
         {
             handleEdge(n);
         }

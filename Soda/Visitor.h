@@ -29,9 +29,11 @@ namespace Soda
     struct AstContinueStmt;
     struct AstGotoStmt;
     struct AstIfStmt;
+    struct AstDoStmt;
     struct AstWhileStmt;
     struct AstEmptyDecl;
     struct AstCommentDecl;
+    struct AstLabelDecl;
     struct AstUsingDecl;
     struct AstNamespaceDecl;
     struct AstVarDecl;
@@ -72,9 +74,11 @@ namespace Soda
         virtual void visit(AstContinueStmt &) = 0;
         virtual void visit(AstGotoStmt &) = 0;
         virtual void visit(AstIfStmt &) = 0;
+        virtual void visit(AstDoStmt &) = 0;
         virtual void visit(AstWhileStmt &) = 0;
         virtual void visit(AstEmptyDecl &) = 0;
         virtual void visit(AstCommentDecl &) = 0;
+        virtual void visit(AstLabelDecl &) = 0;
         virtual void visit(AstUsingDecl &) = 0;
         virtual void visit(AstNamespaceDecl &) = 0;
         virtual void visit(AstVarDecl &) = 0;
@@ -116,9 +120,11 @@ namespace Soda
         virtual void visit(AstContinueStmt &n) override;
         virtual void visit(AstGotoStmt &n) override;
         virtual void visit(AstIfStmt &n) override;
+        virtual void visit(AstDoStmt &n) override;
         virtual void visit(AstWhileStmt &n) override;
         virtual void visit(AstEmptyDecl &n) override;
         virtual void visit(AstCommentDecl &n) override;
+        virtual void visit(AstLabelDecl &n) override;
         virtual void visit(AstUsingDecl &n) override;
         virtual void visit(AstNamespaceDecl &n) override;
         virtual void visit(AstVarDecl &n) override;

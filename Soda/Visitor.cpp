@@ -108,6 +108,11 @@ namespace Soda
     {
         n.acceptChildren(*this);
     }
+    void AstDefaultVisitor::visit(AstDoStmt &n)
+    {
+        n.acceptChildren(*this);
+    }
+
     void AstDefaultVisitor::visit(AstWhileStmt &n)
     {
         n.acceptChildren(*this);
@@ -117,6 +122,10 @@ namespace Soda
         n.acceptChildren(*this);
     }
     void AstDefaultVisitor::visit(AstCommentDecl &n)
+    {
+        n.acceptChildren(*this);
+    }
+    void AstDefaultVisitor::visit(AstLabelDecl &n)
     {
         n.acceptChildren(*this);
     }

@@ -1,27 +1,10 @@
 
-namespace std.math
-{
-
-    enum LowNumber
-    {
-        ZERO = 0,
-        ONE = 1,
-        TWO = 2
-    }
-
-    int fib(int n)
-    {
-        if (n == LowNumber.ZERO)
-            return LowNumber.ZERO;
-        else if (n == LowNumber.ONE)
-            return LowNumber.ONE;
-        else
-            return (fib(n - LowNumber.ONE) + fib(n - LowNumber.TWO));
-    }
-
-}
+  const int n = 1;
+  int add_to(int x) {
+      return x + n;
+  }
 
 int main()
 {
-    return math.fib(3);
+    return add_to(1);
 }

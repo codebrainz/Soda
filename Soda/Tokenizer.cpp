@@ -107,7 +107,7 @@ namespace Soda
                 { "switch", TK_SWITCH }, { "case", TK_CASE },
                 { "default", TK_DEFAULT }, { "break", TK_BREAK },
                 { "continue", TK_CONTINUE }, { "goto", TK_GOTO },
-                { "return", TK_RETURN }, { "for", TK_FOR },
+                { "return", TK_RETURN }, { "for", TK_FOR }, { "do", TK_DO },
                 { "while", TK_WHILE }, { "struct", TK_STRUCT },
                 { "enum", TK_ENUM }, { "namespace", TK_NAMESPACE },
                 { "using", TK_USING } };
@@ -499,6 +499,8 @@ namespace Soda
             return "RETURN_KWD";
         case TK_FOR:
             return "FOR_KWD";
+        case TK_DO:
+            return "DO_KWD";
         case TK_WHILE:
             return "WHILE_KWD";
         case TK_STRUCT:

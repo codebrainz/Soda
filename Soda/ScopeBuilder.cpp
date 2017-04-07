@@ -157,6 +157,10 @@ namespace Soda
         {
             handleBasicNode(n);
         }
+        virtual void visit(AstDoStmt &n) override final
+        {
+            handleBasicNode(n);
+        }
         virtual void visit(AstWhileStmt &n) override final
         {
             handleBasicNode(n);
@@ -168,6 +172,13 @@ namespace Soda
         virtual void visit(AstCommentDecl &n) override final
         {
             handleBasicNode(n);
+        }
+        virtual void visit(AstLabelDecl &n) override final
+        {
+            define(SK_LABEL, n);
+            beginParent(n);
+            n.acceptChildren(*this);
+            endParent(n);
         }
         virtual void visit(AstUsingDecl &n) override final
         {
