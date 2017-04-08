@@ -108,6 +108,14 @@ namespace Soda
     {
         n.acceptChildren(*this);
     }
+    void AstDefaultVisitor::visit(AstCaseStmt &n)
+    {
+        n.acceptChildren(*this);
+    }
+    void AstDefaultVisitor::visit(AstSwitchStmt &n)
+    {
+        n.acceptChildren(*this);
+    }
     void AstDefaultVisitor::visit(AstDoStmt &n)
     {
         n.acceptChildren(*this);

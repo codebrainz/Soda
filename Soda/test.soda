@@ -1,10 +1,13 @@
-
-  const int n = 1;
-  int add_to(int x) {
-      return x + n;
-  }
-
 int main()
 {
-    return add_to(1);
+    int x = 0;
+    switch (x)
+    {
+        case 1:
+            return 1;
+        case 2:
+            return 2;
+        default:
+            return 0;
+    }
 }

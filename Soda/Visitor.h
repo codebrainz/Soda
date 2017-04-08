@@ -17,6 +17,8 @@ namespace Soda
     struct AstTypeRef;
     struct AstCast;
     struct AstIfExpr;
+    struct AstCaseStmt;
+    struct AstSwitchStmt;
     struct AstCallExpr;
     struct AstIndexExpr;
     struct AstMemberExpr;
@@ -74,6 +76,8 @@ namespace Soda
         virtual void visit(AstContinueStmt &) = 0;
         virtual void visit(AstGotoStmt &) = 0;
         virtual void visit(AstIfStmt &) = 0;
+        virtual void visit(AstCaseStmt &) = 0;
+        virtual void visit(AstSwitchStmt &) = 0;
         virtual void visit(AstDoStmt &) = 0;
         virtual void visit(AstWhileStmt &) = 0;
         virtual void visit(AstEmptyDecl &) = 0;
@@ -120,6 +124,8 @@ namespace Soda
         virtual void visit(AstContinueStmt &n) override;
         virtual void visit(AstGotoStmt &n) override;
         virtual void visit(AstIfStmt &n) override;
+        virtual void visit(AstCaseStmt &n) override;
+        virtual void visit(AstSwitchStmt &n) override;
         virtual void visit(AstDoStmt &n) override;
         virtual void visit(AstWhileStmt &n) override;
         virtual void visit(AstEmptyDecl &n) override;

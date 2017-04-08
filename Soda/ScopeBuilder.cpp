@@ -157,6 +157,23 @@ namespace Soda
         {
             handleBasicNode(n);
         }
+        virtual void visit(AstCaseStmt &n) override final
+        {
+            if (n.expr)
+                n.expr->accept(*this);
+            openParentScope(n);
+            for (auto &stmt : n.stmts)
+                stmt->accept(*this);
+            closeParentScope(n);
+        }
+        virtual void visit(AstSwitchStmt &n) override final
+        {
+            n.expr->accept(*this);
+            openParentScope(n);
+            for (auto &case_ : n.cases)
+                case_->accept(*this);
+            closeParentScope(n);
+        }
         virtual void visit(AstDoStmt &n) override final
         {
             handleBasicNode(n);

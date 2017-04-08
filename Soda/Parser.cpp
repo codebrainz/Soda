@@ -896,6 +896,74 @@ namespace Soda
                 std::move(thenStmt), std::move(elseStmt), startToken, endToken);
         }
 
+        //> case_stmt: CASE expr ':' stmt* ';'
+        //>          | DEFAULT ':' stmt* ';'
+        //>          ;
+        AstStmtPtr parseCaseStmt()
+        {
+            auto startToken = currentToken();
+            AstExprPtr expr;
+            AstStmtList stmts;
+            if (accept(TK_CASE)) {
+                expr = parseExpr();
+                if (!expr)
+                    return nullptr;
+            } else if (accept(TK_DEFAULT)) {
+                ;
+            } else {
+                return nullptr;
+            }
+            auto endToken = currentToken();
+            if (!expect(':'))
+                return nullptr;
+            while (true) {
+                if (auto stmt = parseLocalStmt()) {
+                    if (!isIgnored(stmt))
+                        stmts.push_back(std::move(stmt));
+                } else {
+                    break;
+                }
+            }
+            if (!stmts.empty())
+                endToken = stmts.back()->end;
+            return std::make_unique< AstCaseStmt >(
+                std::move(expr), std::move(stmts), startToken, endToken);
+        }
+
+        //> switch_stmt: SWITCH '(' expr ')' '{' case_stmt* '}'
+        //>            ;
+        AstStmtPtr parseSwitchStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_SWITCH))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            auto expr = parseExpr();
+            if (!expr)
+                return nullptr;
+            if (!expect(')'))
+                return nullptr;
+            if (!expect('{'))
+                return nullptr;
+            AstStmtList cases;
+            auto endToken = currentToken();
+            if (!accept('}')) {
+                while (true) {
+                    if (auto case_ = parseCaseStmt()) {
+                        cases.push_back(std::move(case_));
+                    } else {
+                        break;
+                    }
+                }
+                endToken = currentToken();
+                if (!expect('}'))
+                    return nullptr;
+            }
+            return std::make_unique< AstSwitchStmt >(
+                std::move(expr), std::move(cases), startToken, endToken);
+        }
+
         //> do_stmt: DO stmt WHILE '(' expr ')'
         //>        ;
         AstStmtPtr parseDoStmt()
@@ -948,6 +1016,7 @@ namespace Soda
         //>           | continue_stmt
         //>           | goto_stmt
         //>           | if_stmt
+        //>           | switch_stmt
         //>           | decl
         //>           | expr_stmt
         //>           ;
@@ -976,6 +1045,8 @@ namespace Soda
                 return parseGotoStmt();
             else if (kind == TK_IF)
                 return parseIfStmt();
+            else if (kind == TK_SWITCH)
+                return parseSwitchStmt();
             else if (kind == TK_DO)
                 return parseDoStmt();
             else if (kind == TK_WHILE)

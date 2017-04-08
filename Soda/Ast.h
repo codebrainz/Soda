@@ -42,6 +42,8 @@ namespace Soda
         NK_CONTINUE_STMT,
         NK_GOTO_STMT,
         NK_IF_STMT,
+        NK_CASE_STMT,
+        NK_SWITCH_STMT,
         NK_DO_STMT,
         NK_WHILE_STMT,
         NK_EMPTY_DECL,
@@ -568,6 +570,61 @@ namespace Soda
                 elseStmt->accept(v);
         }
         AST_VISITABLE(IfStmt)
+    };
+
+    struct AstCaseStmt final : public AstStmt
+    {
+        SymbolTable scope;
+        AstExprPtr expr;
+        AstStmtList stmts;
+        AstCaseStmt(
+            AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+            : AstStmt(NK_CASE_STMT, start, end)
+            , expr(std::move(expr))
+        {
+        }
+        AstCaseStmt(AstExprPtr expr, AstStmtList stmts, Token *start = nullptr,
+            Token *end = nullptr)
+            : AstStmt(NK_CASE_STMT, start, end)
+            , expr(std::move(expr))
+            , stmts(std::move(stmts))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            if (expr)
+                expr->accept(v);
+            for (auto &stmt : stmts)
+                stmt->accept(v);
+        }
+        AST_VISITABLE(AstCaseStmt)
+    };
+
+    struct AstSwitchStmt final : public AstStmt
+    {
+        SymbolTable scope;
+        AstExprPtr expr;
+        AstStmtList cases;
+        AstSwitchStmt(
+            AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+            : AstStmt(NK_SWITCH_STMT, start, end)
+            , expr(std::move(expr))
+        {
+        }
+        AstSwitchStmt(AstExprPtr expr, AstStmtList cases,
+            Token *start = nullptr, Token *end = nullptr)
+            : AstStmt(NK_SWITCH_STMT, start, end)
+            , expr(std::move(expr))
+            , cases(std::move(cases))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            expr->accept(v);
+            for (auto &case_ : cases)
+                case_->accept(v);
+        }
+        AST_VISITABLE(AstSwitchStmt)
     };
 
     struct AstDoStmt final : public AstStmt
