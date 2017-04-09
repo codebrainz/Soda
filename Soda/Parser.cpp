@@ -964,6 +964,79 @@ namespace Soda
                 std::move(expr), std::move(cases), startToken, endToken);
         }
 
+        //> empty_stmt: ';'
+        //>           ;
+        AstStmtPtr parseEmptyStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(';'))
+                return nullptr;
+            return std::make_unique< AstEmptyStmt >(startToken, startToken);
+        }
+
+        //> for_init: empty_stmt
+        //>         | variable
+        //>         | expr_stmt
+        //>         ;
+        AstStmtPtr parseForInit()
+        {
+            if (currentToken()->kind == ';')
+                return parseEmptyStmt();
+            else if (auto var = parseVariable())
+                return var;
+            return parseExprStmt();
+        }
+
+        //> for_test: empty_stmt
+        //>         | expr_stmt
+        //>         ;
+        AstStmtPtr parseForTest()
+        {
+            if (currentToken()->kind == ';')
+                return parseEmptyStmt();
+            return parseExprStmt();
+        }
+
+        //> for_stmt: FOR '(' for_init expr_stmt expr? ')' stmt
+        //>         ;
+        AstStmtPtr parseForStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_FOR))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            auto initStmt = parseForInit();
+            if (!initStmt)
+                return nullptr;
+            else if (initStmt->kind == NK_EMPTY_STMT)
+                initStmt.reset(nullptr);
+            else if (initStmt->kind == NK_VAR_DECL) {
+                if (!static_cast< AstVarDecl * >(initStmt.get())->initExpr)
+                    return nullptr; // todo: error message
+            }
+            auto testStmt = parseForTest();
+            if (!testStmt)
+                return nullptr;
+            else if (testStmt->kind == NK_EMPTY_STMT)
+                testStmt.reset(nullptr);
+            else if (testStmt->kind != NK_EXPR_STMT)
+                return nullptr; // todo: error message
+            auto testExpr = testStmt
+                ? std::move(static_cast< AstExprStmt * >(testStmt.get())->expr)
+                : nullptr;
+            auto incrExpr = parseExpr();
+            if (!expect(')'))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstForStmt >(std::move(initStmt),
+                std::move(testExpr), std::move(incrExpr), std::move(stmt),
+                startToken, endToken);
+        }
+
         //> do_stmt: DO stmt WHILE '(' expr ')'
         //>        ;
         AstStmtPtr parseDoStmt()
@@ -1008,7 +1081,7 @@ namespace Soda
                 std::move(expr), std::move(stmt), startToken, endToken);
         }
 
-        //> local_stmt: ';'
+        //> local_stmt: empty_stmt
         //>           | COMMENT
         //>           | block_stmt
         //>           | return_stmt
@@ -1017,6 +1090,10 @@ namespace Soda
         //>           | goto_stmt
         //>           | if_stmt
         //>           | switch_stmt
+        //>           | for_stmt
+        //>           | do_stmt
+        //>           | while_stmt
+        //>           | label_decl
         //>           | decl
         //>           | expr_stmt
         //>           ;
@@ -1024,8 +1101,8 @@ namespace Soda
         {
             auto startToken = currentToken();
             auto kind = currentToken()->kind;
-            if (accept(';'))
-                return std::make_unique< AstEmptyStmt >(startToken, startToken);
+            if (kind == ';')
+                return parseEmptyStmt();
             else if (kind == TK_COMMENT) {
                 auto text = tokenText();
                 auto endToken = currentToken();
@@ -1047,6 +1124,8 @@ namespace Soda
                 return parseIfStmt();
             else if (kind == TK_SWITCH)
                 return parseSwitchStmt();
+            else if (kind == TK_FOR)
+                return parseForStmt();
             else if (kind == TK_DO)
                 return parseDoStmt();
             else if (kind == TK_WHILE)
@@ -1162,87 +1241,114 @@ namespace Soda
         //> decl_specifiers: %empty
         //>                | STATIC
         //>                ;
-        //>
-        //> variable: decl_specifiers type_ref IDENT ( '=' expr )? ';'
+        auto parseDeclFlags()
+        {
+            DeclFlags flags = DF_NONE;
+            if (accept(TK_STATIC))
+                flags = DeclFlags(flags | DF_STATIC);
+            // ...
+            return flags;
+        }
+
+        //> var_or_func_prefix: decl_specifiers type_ref IDENT
+        //>                   ;
+        bool parseVarOrFuncPrefix(
+            DeclFlags &flags, AstTypeRefPtr &type, std::string &name)
+        {
+            flags = parseDeclFlags();
+            type = parseTypeRef();
+            if (!type)
+                return false;
+            name = tokenText();
+            if (!accept(TK_IDENT))
+                return false;
+            return true;
+        }
+
+        //> variable: var_or_func_prefix ( '=' expr )? ';'
         //>         ;
-        //>
-        //> function: decl_specifiers type_ref IDENT '(' parameter_list? ')' '{' stmt_list? '}'
-        //>         ;
-        //>
-        //> parameter_list: parameter
-        //>               | parameter_list ',' parameter
-        //>               ;
-        //>
-        //> stmt_list: stmt
-        //>          | stmt_list stmt
-        //>          ;
-        AstDeclPtr parseVarOrFuncDef()
+        AstDeclPtr parseVariable()
         {
             BackTracker bt(*this);
             auto startToken = currentToken();
-            auto declFlags = DF_NONE;
-            if (accept(TK_STATIC))
-                declFlags = DeclFlags(declFlags | DF_STATIC);
-            auto typeRef = parseTypeRef();
-            if (!typeRef)
+            DeclFlags flags = DF_NONE;
+            AstTypeRefPtr typeRef;
+            std::string name;
+            if (!parseVarOrFuncPrefix(flags, typeRef, name))
                 return nullptr;
-            auto name = tokenText();
-            if (!accept(TK_IDENT))
+            AstExprPtr initExpr;
+            if (accept('='))
+                initExpr = parseExpr();
+            auto endToken = currentToken();
+            if (!accept(';'))
+                return nullptr;
+            auto var = std::make_unique< AstVarDecl >(std::move(name),
+                std::move(typeRef), std::move(initExpr), startToken, endToken);
+            var->flags = DeclFlags(var->flags | flags);
+            bt.cancel();
+            return std::move(var);
+        }
+
+        //> function: var_or_func_prefix '(' parameter* ')' '{' local_stmt* '}'
+        //>         ;
+        AstDeclPtr parseFunction()
+        {
+            BackTracker bt(*this);
+            auto startToken = currentToken();
+            DeclFlags flags = DF_NONE;
+            AstTypeRefPtr typeRef;
+            std::string name;
+            if (!parseVarOrFuncPrefix(flags, typeRef, name))
                 return nullptr;
             AstDeclList params;
-            // Function
-            if (accept('(')) {
-                if (!accept(')')) {
-                    while (true) {
-                        if (auto param = parseParameter()) {
-                            if (!isIgnored(param))
-                                params.push_back(std::move(param));
-                            if (!accept(','))
-                                break;
-                        } else
+            if (!accept('('))
+                return nullptr;
+            if (!accept(')')) {
+                while (true) {
+                    if (auto param = parseParameter()) {
+                        if (!isIgnored(param))
+                            params.push_back(std::move(param));
+                        if (!accept(','))
                             break;
+                    } else {
+                        break;
                     }
-                    if (!expect(')'))
-                        return nullptr;
                 }
-                if (!expect('{'))
+                if (!expect(')'))
                     return nullptr;
-                AstStmtList stmts;
-                auto endToken = currentToken();
-                if (!accept('}')) {
-                    while (true) {
-                        if (auto stmt = parseLocalStmt()) {
-                            if (!isIgnored(stmt))
-                                stmts.push_back(std::move(stmt));
-                        } else
-                            break;
-                    }
-                    endToken = currentToken();
-                    if (!expect('}'))
-                        return nullptr;
+            }
+            AstStmtList stmts;
+            if (!accept('{'))
+                return nullptr;
+            auto endToken = currentToken();
+            if (!accept('}')) {
+                while (true) {
+                    if (auto stmt = parseLocalStmt()) {
+                        if (!isIgnored(stmt))
+                            stmts.push_back(std::move(stmt));
+                    } else
+                        break;
                 }
-                auto fun = std::make_unique< AstFuncDecl >(std::move(name),
-                    std::move(typeRef), std::move(params), std::move(stmts),
-                    startToken, endToken);
-                fun->flags = DeclFlags(fun->flags | declFlags);
-                bt.cancel();
-                return std::move(fun);
-            }
-            // Variable
-            else {
-                AstExprPtr initExpr;
-                if (accept('='))
-                    initExpr = parseExpr();
-                auto endToken = currentToken();
-                if (!expect(';'))
+                endToken = currentToken();
+                if (!expect('}'))
                     return nullptr;
-                auto var = std::make_unique< AstVarDecl >(std::move(name),
-                    std::move(typeRef), std::move(initExpr), startToken,
-                    endToken);
-                var->flags = DeclFlags(var->flags | declFlags);
-                bt.cancel();
-                return std::move(var);
             }
+            auto fun = std::make_unique< AstFuncDecl >(std::move(name),
+                std::move(typeRef), std::move(params), std::move(stmts),
+                startToken, endToken);
+            fun->flags = DeclFlags(fun->flags | flags);
+            bt.cancel();
+            return std::move(fun);
+        }
+
+        //> var_or_func_def: function
+        //>                | variable
+        //>                ;
+        AstDeclPtr parseVarOrFuncDef()
+        {
+            if (auto fun = parseFunction())
+                return fun;
+            return parseVariable();
         }
 
         //> parameter: type_ref IDENT

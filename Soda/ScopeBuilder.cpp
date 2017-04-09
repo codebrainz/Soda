@@ -168,10 +168,14 @@ namespace Soda
         }
         virtual void visit(AstSwitchStmt &n) override final
         {
-            n.expr->accept(*this);
             openParentScope(n);
-            for (auto &case_ : n.cases)
-                case_->accept(*this);
+            n.acceptChildren(*this);
+            closeParentScope(n);
+        }
+        virtual void visit(AstForStmt &n) override final
+        {
+            openParentScope(n);
+            n.acceptChildren(*this);
             closeParentScope(n);
         }
         virtual void visit(AstDoStmt &n) override final

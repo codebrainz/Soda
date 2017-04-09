@@ -44,6 +44,7 @@ namespace Soda
         NK_IF_STMT,
         NK_CASE_STMT,
         NK_SWITCH_STMT,
+        NK_FOR_STMT,
         NK_DO_STMT,
         NK_WHILE_STMT,
         NK_EMPTY_DECL,
@@ -625,6 +626,36 @@ namespace Soda
                 case_->accept(v);
         }
         AST_VISITABLE(AstSwitchStmt)
+    };
+
+    struct AstForStmt final : public AstStmt
+    {
+        SymbolTable scope;
+        AstStmtPtr initStmt;
+        AstExprPtr testExpr;
+        AstExprPtr incrExpr;
+        AstStmtPtr stmt;
+        AstForStmt(AstStmtPtr initStmt, AstExprPtr testExpr,
+            AstExprPtr incrExpr, AstStmtPtr stmt, Token *start = nullptr,
+            Token *end = nullptr)
+            : AstStmt(NK_FOR_STMT, start, end)
+            , initStmt(std::move(initStmt))
+            , testExpr(std::move(testExpr))
+            , incrExpr(std::move(incrExpr))
+            , stmt(std::move(stmt))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            if (initStmt)
+                initStmt->accept(v);
+            if (testExpr)
+                testExpr->accept(v);
+            if (incrExpr)
+                incrExpr->accept(v);
+            stmt->accept(v);
+        }
+        AST_VISITABLE(ForStmt)
     };
 
     struct AstDoStmt final : public AstStmt

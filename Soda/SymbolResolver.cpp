@@ -37,6 +37,20 @@ namespace Soda
             n.refSymbol = lookup(n, n.label, false);
         }
 
+        virtual void visit(AstSwitchStmt &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
+        virtual void visit(AstForStmt &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
         virtual void visit(AstUsingDecl &) override final
         {
             // todo: import symbols from referred namespace into current scope
