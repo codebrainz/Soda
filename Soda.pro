@@ -16,7 +16,8 @@ SOURCES += \
     Soda/Visitor.cpp \
     Soda/Operators.cpp \
     Soda/Sema.cpp \
-    Soda/Symbol.cpp
+    Soda/Symbol.cpp \
+    Soda/Compiler.cpp
 
 HEADERS += \
     Soda/Ast.h \

@@ -51,6 +51,7 @@ namespace Soda
         Private *m_Impl;
     };
 
-    typedef std::vector< SourceFile > SourceFileList;
+    typedef std::unique_ptr< SourceFile > SourceFilePtr;
+    typedef std::vector< SourceFilePtr > SourceFileList;
 
 } // namespace Soda

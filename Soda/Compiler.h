@@ -19,33 +19,9 @@ namespace Soda
     class Compiler
     {
     public:
-        void addFile(const std::string &fn)
-        {
-            sourceFiles.emplace_back(*this, fn);
-        }
-
-        bool parse()
-        {
-            for (auto &sourceFile : sourceFiles) {
-                sourceFile.tokenize(tokens);
-                modules.emplace_back(parseTokens(*this, tokens));
-            }
-            return true;
-        }
-
-        unsigned int analyze()
-        {
-            unsigned int failures = 0;
-            for (auto &mod : modules)
-                failures += buildScopes(*this, *mod);
-            for (auto &mod : modules)
-                failures += resolveSymbols(*this, *mod);
-            for (auto &mod : modules)
-                mangleNames(*this, *mod);
-            for (auto &mod : modules)
-                analyzeSemantics(*this, *mod);
-            return failures;
-        }
+        void addFile(const std::string &fn);
+        bool parse();
+        unsigned int analyze();
 
         const TokenList &getTokens() const
         {
@@ -108,10 +84,10 @@ namespace Soda
         }
 
     private:
-        SourceFileList sourceFiles;
-        TokenList tokens;
         SymbolTable globalScope;
         AstModuleList modules;
+        TokenList tokens;
+        SourceFileList sourceFiles;
         Logger logger;
     };
 

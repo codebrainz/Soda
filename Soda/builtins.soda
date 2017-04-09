@@ -1,0 +1,59 @@
+struct bool
+{
+}
+
+struct int8
+{
+}
+
+struct uint8
+{
+}
+
+struct int16
+{
+}
+
+struct uint16
+{
+}
+
+struct int32
+{
+}
+
+struct uint32
+{
+}
+
+struct int64
+{
+}
+
+struct uint64
+{
+}
+
+struct float32
+{
+}
+
+struct float64
+{
+}
+
+struct real
+{
+}
+
+typedef uint8 byte;
+typedef int16 short;
+typedef uint16 ushort;
+typedef int32 int;
+typedef uint32 uint;
+typedef int64 long;
+typedef uint64 ulong;
+typedef float32 float;
+typedef float64 double;
+
+typedef uint32 char;
