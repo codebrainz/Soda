@@ -13,10 +13,18 @@ namespace Soda
     {
         Compiler &compiler;
         std::vector< std::string > nameStack;
+        size_t nameCnt;
 
         NameMangler(Compiler &compiler)
             : compiler(compiler)
+            , nameCnt(0)
         {
+        }
+
+        std::string generateName(const std::string &prefix = "anon")
+        {
+            auto id = nameCnt++;
+            return prefix + std::to_string(id);
         }
 
         std::string mangleDottedName(const std::string &dottedName)
@@ -38,6 +46,41 @@ namespace Soda
             for (size_t i = 0; i < nameStack.size(); i++)
                 n.mangledName += nameStack[i] + '_';
             n.mangledName += mangleDottedName(n.name);
+        }
+
+        virtual void visit(AstBlockStmt &n)
+        {
+            nameStack.push_back(generateName());
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstIfStmt &n)
+        {
+            nameStack.push_back(generateName());
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstCaseStmt &n)
+        {
+            nameStack.push_back(generateName());
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstSwitchStmt &n)
+        {
+            nameStack.push_back(generateName());
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstForStmt &n)
+        {
+            nameStack.push_back(generateName());
+            n.acceptChildren(*this);
+            nameStack.pop_back();
         }
 
         virtual void visit(AstTypedef &n)
