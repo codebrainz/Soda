@@ -872,8 +872,46 @@ namespace Soda
                 std::move(label), startToken, endToken);
         }
 
-        //> if_stmt: IF '(' expr ')' stmt
-        //>        | IF '(' expr ')' stmt ELSE stmt
+        //> variable_init: var_or_func_prefix '=' expr ';'
+        //>              ;
+        AstDeclPtr parseVariableInit()
+        {
+            BackTracker bt(*this);
+            auto startToken = currentToken();
+            DeclFlags flags = DF_NONE;
+            AstTypeRefPtr typeRef;
+            std::string name;
+            if (!parseVarOrFuncPrefix(flags, typeRef, name))
+                return nullptr;
+            if (!expect('='))
+                return nullptr;
+            auto initExpr = parseExpr();
+            if (!initExpr)
+                return nullptr;
+            auto endToken = initExpr->end;
+            auto var = std::make_unique< AstVarDecl >(std::move(name),
+                std::move(typeRef), std::move(initExpr), startToken, endToken);
+            var->flags = DeclFlags(var->flags | flags);
+            bt.cancel();
+            return std::move(var);
+        }
+
+        //> var_decl_or_expr: variable_init
+        //>                 | expr
+        //>                 ;
+        AstNodePtr parseVarDeclOrExpr()
+        {
+            if (auto var = parseVariableInit()) {
+                if (!static_cast< AstVarDecl * >(var.get())->initExpr)
+                    return nullptr; // todo: error message
+                return var;
+            } else {
+                return parseExpr();
+            }
+        }
+
+        //> if_stmt: IF '(' var_decl_or_expr ')' stmt
+        //>        | IF '(' var_decl_or_expr ')' stmt ELSE stmt
         //>        ;
         AstStmtPtr parseIfStmt()
         {
@@ -882,7 +920,9 @@ namespace Soda
                 return nullptr;
             if (!expect('('))
                 return nullptr;
-            auto condExpr = parseExpr();
+            auto testNode = parseVarDeclOrExpr();
+            if (!testNode)
+                return nullptr;
             if (!expect(')'))
                 return nullptr;
             auto thenStmt = parseLocalStmt();
@@ -892,7 +932,7 @@ namespace Soda
                 elseStmt = parseLocalStmt();
                 endToken = elseStmt->end;
             }
-            return std::make_unique< AstIfStmt >(std::move(condExpr),
+            return std::make_unique< AstIfStmt >(std::move(testNode),
                 std::move(thenStmt), std::move(elseStmt), startToken, endToken);
         }
 
@@ -930,7 +970,7 @@ namespace Soda
                 std::move(expr), std::move(stmts), startToken, endToken);
         }
 
-        //> switch_stmt: SWITCH '(' expr ')' '{' case_stmt* '}'
+        //> switch_stmt: SWITCH '(' var_decl_or_expr ')' '{' case_stmt* '}'
         //>            ;
         AstStmtPtr parseSwitchStmt()
         {
@@ -939,8 +979,8 @@ namespace Soda
                 return nullptr;
             if (!expect('('))
                 return nullptr;
-            auto expr = parseExpr();
-            if (!expr)
+            auto testNode = parseVarDeclOrExpr();
+            if (!testNode)
                 return nullptr;
             if (!expect(')'))
                 return nullptr;
@@ -961,7 +1001,7 @@ namespace Soda
                     return nullptr;
             }
             return std::make_unique< AstSwitchStmt >(
-                std::move(expr), std::move(cases), startToken, endToken);
+                std::move(testNode), std::move(cases), startToken, endToken);
         }
 
         //> empty_stmt: ';'

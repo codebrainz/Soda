@@ -155,7 +155,9 @@ namespace Soda
         }
         virtual void visit(AstIfStmt &n) override final
         {
-            handleBasicNode(n);
+            openParentScope(n);
+            n.acceptChildren(*this);
+            closeParentScope(n);
         }
         virtual void visit(AstCaseStmt &n) override final
         {

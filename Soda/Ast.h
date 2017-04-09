@@ -552,20 +552,21 @@ namespace Soda
 
     struct AstIfStmt final : public AstStmt
     {
-        AstExprPtr condExpr;
+        SymbolTable scope;
+        AstNodePtr condNode;
         AstStmtPtr thenStmt;
         AstStmtPtr elseStmt;
-        AstIfStmt(AstExprPtr condExpr, AstStmtPtr thenStmt, AstStmtPtr elseStmt,
+        AstIfStmt(AstNodePtr condNode, AstStmtPtr thenStmt, AstStmtPtr elseStmt,
             Token *start = nullptr, Token *end = nullptr)
             : AstStmt(NK_IF_STMT, start, end)
-            , condExpr(std::move(condExpr))
+            , condNode(std::move(condNode))
             , thenStmt(std::move(thenStmt))
             , elseStmt(std::move(elseStmt))
         {
         }
         virtual void acceptChildren(AstVisitor &v) override final
         {
-            condExpr->accept(v);
+            condNode->accept(v);
             thenStmt->accept(v);
             if (elseStmt)
                 elseStmt->accept(v);
@@ -604,24 +605,24 @@ namespace Soda
     struct AstSwitchStmt final : public AstStmt
     {
         SymbolTable scope;
-        AstExprPtr expr;
+        AstNodePtr testNode;
         AstStmtList cases;
         AstSwitchStmt(
-            AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+            AstNodePtr testNode, Token *start = nullptr, Token *end = nullptr)
             : AstStmt(NK_SWITCH_STMT, start, end)
-            , expr(std::move(expr))
+            , testNode(std::move(testNode))
         {
         }
-        AstSwitchStmt(AstExprPtr expr, AstStmtList cases,
+        AstSwitchStmt(AstNodePtr testNode, AstStmtList cases,
             Token *start = nullptr, Token *end = nullptr)
             : AstStmt(NK_SWITCH_STMT, start, end)
-            , expr(std::move(expr))
+            , testNode(std::move(testNode))
             , cases(std::move(cases))
         {
         }
         virtual void acceptChildren(AstVisitor &v) override final
         {
-            expr->accept(v);
+            testNode->accept(v);
             for (auto &case_ : cases)
                 case_->accept(v);
         }
