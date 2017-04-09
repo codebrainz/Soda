@@ -901,13 +901,9 @@ namespace Soda
         //>                 ;
         AstNodePtr parseVarDeclOrExpr()
         {
-            if (auto var = parseVariableInit()) {
-                if (!static_cast< AstVarDecl * >(var.get())->initExpr)
-                    return nullptr; // todo: error message
+            if (auto var = parseVariableInit())
                 return var;
-            } else {
-                return parseExpr();
-            }
+            return parseExpr();
         }
 
         //> if_stmt: IF '(' var_decl_or_expr ')' stmt
@@ -1015,15 +1011,18 @@ namespace Soda
         }
 
         //> for_init: empty_stmt
-        //>         | variable
+        //>         | variable_init ';'
         //>         | expr_stmt
         //>         ;
         AstStmtPtr parseForInit()
         {
             if (currentToken()->kind == ';')
                 return parseEmptyStmt();
-            else if (auto var = parseVariable())
+            else if (auto var = parseVariableInit()) {
+                if (!expect(';'))
+                    return nullptr;
                 return var;
+            }
             return parseExprStmt();
         }
 
@@ -1046,22 +1045,21 @@ namespace Soda
                 return nullptr;
             if (!expect('('))
                 return nullptr;
-            auto initStmt = parseForInit();
-            if (!initStmt)
+            auto initNode = parseForInit();
+            if (!initNode)
                 return nullptr;
-            else if (initStmt->kind == NK_EMPTY_STMT)
-                initStmt.reset(nullptr);
-            else if (initStmt->kind == NK_VAR_DECL) {
-                if (!static_cast< AstVarDecl * >(initStmt.get())->initExpr)
-                    return nullptr; // todo: error message
-            }
+            else if (initNode->kind == NK_EMPTY_STMT)
+                initNode.reset(nullptr);
             auto testStmt = parseForTest();
             if (!testStmt)
                 return nullptr;
             else if (testStmt->kind == NK_EMPTY_STMT)
                 testStmt.reset(nullptr);
-            else if (testStmt->kind != NK_EXPR_STMT)
-                return nullptr; // todo: error message
+            else if (testStmt->kind != NK_EXPR_STMT) {
+                compiler.error(
+                    *testStmt, "for loop test must be an expression");
+                return nullptr;
+            }
             auto testExpr = testStmt
                 ? std::move(static_cast< AstExprStmt * >(testStmt.get())->expr)
                 : nullptr;
@@ -1072,7 +1070,7 @@ namespace Soda
             if (!stmt)
                 return nullptr;
             auto endToken = stmt->end;
-            return std::make_unique< AstForStmt >(std::move(initStmt),
+            return std::make_unique< AstForStmt >(std::move(initNode),
                 std::move(testExpr), std::move(incrExpr), std::move(stmt),
                 startToken, endToken);
         }

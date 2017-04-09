@@ -632,15 +632,15 @@ namespace Soda
     struct AstForStmt final : public AstStmt
     {
         SymbolTable scope;
-        AstStmtPtr initStmt;
+        AstNodePtr initNode;
         AstExprPtr testExpr;
         AstExprPtr incrExpr;
         AstStmtPtr stmt;
-        AstForStmt(AstStmtPtr initStmt, AstExprPtr testExpr,
+        AstForStmt(AstNodePtr initNode, AstExprPtr testExpr,
             AstExprPtr incrExpr, AstStmtPtr stmt, Token *start = nullptr,
             Token *end = nullptr)
             : AstStmt(NK_FOR_STMT, start, end)
-            , initStmt(std::move(initStmt))
+            , initNode(std::move(initNode))
             , testExpr(std::move(testExpr))
             , incrExpr(std::move(incrExpr))
             , stmt(std::move(stmt))
@@ -648,8 +648,8 @@ namespace Soda
         }
         virtual void acceptChildren(AstVisitor &v) override final
         {
-            if (initStmt)
-                initStmt->accept(v);
+            if (initNode)
+                initNode->accept(v);
             if (testExpr)
                 testExpr->accept(v);
             if (incrExpr)
