@@ -50,9 +50,13 @@ namespace Soda
         void define(SymbolKind kind, AstDecl &decl)
         {
             assert(currentScope());
-            if (!currentScope()->isDefined(decl.name, false))
+            if (!currentScope()->isDefined(decl.name, false)) {
                 currentScope()->define(kind, &decl);
-            else {
+            } else if (kind == SK_FUNCTION) {
+                auto sym = currentScope()->lookup(decl.name, false);
+                assert(sym);
+                static_cast< OverloadedSymbol * >(sym)->addOverload(&decl);
+            } else {
                 compiler.error(decl, "multiple definitions of '%'", decl.name);
                 errorCount++;
             }
@@ -94,17 +98,20 @@ namespace Soda
                 if (auto sym = currentScope()->lookup(nameParts[0])) {
                     for (size_t i = 1; sym != nullptr && i < nameParts.size();
                          i++) {
-                        switch (sym->decl->kind) {
-                        case NK_NAMESPACE_DECL:
-                            sym = static_cast< AstNamespaceDecl * >(sym->decl)
+                        switch (sym->kind) {
+                        case SK_NAMESPACE:
+                            sym = static_cast< AstNamespaceDecl * >(
+                                      static_cast< BasicSymbol * >(sym)->decl)
                                       ->scope.lookup(nameParts[i]);
                             break;
-                        case NK_STRUCT_DECL:
-                            sym = static_cast< AstStructDecl * >(sym->decl)
+                        case SK_STRUCT:
+                            sym = static_cast< AstStructDecl * >(
+                                      static_cast< BasicSymbol * >(sym)->decl)
                                       ->scope.lookup(nameParts[i]);
                             break;
-                        case NK_ENUM_DECL:
-                            sym = static_cast< AstEnumDecl * >(sym->decl)
+                        case SK_ENUM:
+                            sym = static_cast< AstEnumDecl * >(
+                                      static_cast< BasicSymbol * >(sym)->decl)
                                       ->scope.lookup(nameParts[i]);
                             break;
                         default:

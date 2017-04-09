@@ -15,7 +15,8 @@ SOURCES += \
     Soda/Tokenizer.cpp \
     Soda/Visitor.cpp \
     Soda/Operators.cpp \
-    Soda/Sema.cpp
+    Soda/Sema.cpp \
+    Soda/Symbol.cpp
 
 HEADERS += \
     Soda/Ast.h \
@@ -34,4 +35,5 @@ HEADERS += \
     Soda/Tokenizer.h \
     Soda/Visitor.h \
     Soda/Operators.h \
-    Soda/Sema.h
+    Soda/Sema.h \
+    Soda/Symbol.h

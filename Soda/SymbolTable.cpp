@@ -15,7 +15,12 @@ namespace Soda
         assert(decl);
         if (isDefined(decl->name, false))
             return false;
-        table.emplace(decl->name, std::make_unique< Symbol >(kind, decl));
+        if (kind == SK_FUNCTION)
+            table.emplace(
+                decl->name, std::make_unique< OverloadedSymbol >(kind, decl));
+        else
+            table.emplace(
+                decl->name, std::make_unique< BasicSymbol >(kind, decl));
         return true;
     }
 

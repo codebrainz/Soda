@@ -248,7 +248,7 @@ namespace Soda
         std::string mangledName() const
         {
             if (refSymbol)
-                return refSymbol->decl->mangledName;
+                return refSymbol->mangledName();
             return name;
         }
         AST_VISITABLE(Identifier)
