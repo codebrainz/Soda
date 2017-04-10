@@ -1717,6 +1717,42 @@ namespace Soda
                 std::move(name), startToken, endToken);
         }
 
+        //> delegate: DELEGATE type_ref IDENT '(' params* ')' ';'
+        //>         ;
+        AstDeclPtr parseDelegate()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_DELEGATE))
+                return nullptr;
+            auto typeRef = parseTypeRef();
+            if (!typeRef)
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            AstDeclList params;
+            if (!accept(')')) {
+                while (true) {
+                    if (auto param = parseParameter()) {
+                        params.push_back(std::move(param));
+                        if (!accept(','))
+                            break;
+                    } else {
+                        break;
+                    }
+                }
+                if (!expect(')'))
+                    return nullptr;
+            }
+            auto endToken = currentToken();
+            if (!expect(';'))
+                return nullptr;
+            return std::make_unique< AstDelegateDecl >(std::move(name),
+                std::move(typeRef), std::move(params), startToken, endToken);
+        }
+
         //> bool_attr: BOOL_ATTR
         //>          ;
         AstAttributePtr parseBoolAttribute()
@@ -1937,6 +1973,7 @@ namespace Soda
         //>     | attribute_list enum
         //>     | attribute_list namespace
         //>     | attribute_list using
+        //>     | attribute_list delegate
         //>     ;
         AstDeclPtr parseDecl()
         {
@@ -1955,6 +1992,8 @@ namespace Soda
                 decl = parseNamespace();
             } else if (kind == TK_USING) {
                 decl = parseUsing();
+            } else if (kind == TK_DELEGATE) {
+                decl = parseDelegate();
             } else {
                 decl = parseVarOrFuncDef();
             }

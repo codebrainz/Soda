@@ -110,7 +110,7 @@ namespace Soda
                 { "return", TK_RETURN }, { "for", TK_FOR }, { "do", TK_DO },
                 { "while", TK_WHILE }, { "struct", TK_STRUCT },
                 { "enum", TK_ENUM }, { "namespace", TK_NAMESPACE },
-                { "using", TK_USING } };
+                { "using", TK_USING }, { "delegate", TK_DELEGATE } };
         auto len = token.end - token.start;
         for (auto &kwd : kwds) {
             if (kwd.first.length() != len)
@@ -526,6 +526,8 @@ namespace Soda
             return "NAMESPACE_KWD";
         case TK_USING:
             return "USING_KWD";
+        case TK_DELEGATE:
+            return "DELEGATE_KWD";
         case TK_BOOL_ATTR:
             return "BOOL_ATTR";
         case TK_INT_ATTR:

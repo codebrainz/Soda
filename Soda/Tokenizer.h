@@ -56,6 +56,7 @@ namespace Soda
         TK_ENUM,
         TK_NAMESPACE,
         TK_USING,
+        TK_DELEGATE,
 
         TK_BOOL_ATTR,
         TK_INT_ATTR,
