@@ -1,6 +1,5 @@
 - Combine AstEmptyStmt and AstEmptyDecl
 - Parse delegates
-- Make NameMangler.cpp visit functions override final
 - Add function literals/expressions/lambdas
 - Get rid of nil
 - Work on type representation

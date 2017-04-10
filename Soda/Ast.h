@@ -139,7 +139,6 @@ namespace Soda
     {
         DeclFlags flags;
         std::string name;
-        std::string mangledName;
         AstAttributeList attributes;
         AstDecl(DeclFlags flags, std::string name, AstNodeKind kind,
             Token *start, Token *end)
@@ -308,7 +307,6 @@ namespace Soda
     struct AstTypeRef final : public AstNode
     {
         std::string name;
-        std::string mangledName;
         NodePtrType< AstTypeRef > refType;
         TypeFlags typeFlags;
         AstTypeRef(std::string name, TypeFlags typeFlags = TF_NONE,

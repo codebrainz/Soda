@@ -5,7 +5,6 @@ CONFIG -= app_bundle qt
 SOURCES += \
     Soda/DotGenerator.cpp \
     Soda/Main.cpp \
-    Soda/NameMangler.cpp \
     Soda/Options.cpp \
     Soda/Parser.cpp \
     Soda/ScopeBuilder.cpp \
@@ -24,7 +23,6 @@ HEADERS += \
     Soda/Compiler.h \
     Soda/DotGenerator.h \
     Soda/Logger.h \
-    Soda/NameMangler.h \
     Soda/Options.h \
     Soda/Parser.h \
     Soda/ScopeBuilder.h \

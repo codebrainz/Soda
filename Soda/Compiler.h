@@ -2,7 +2,6 @@
 
 #include "Ast.h"
 #include "Logger.h"
-#include "NameMangler.h"
 #include "Parser.h"
 #include "ScopeBuilder.h"
 #include "Sema.h"

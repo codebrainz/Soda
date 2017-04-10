@@ -24,8 +24,6 @@ namespace Soda
         for (auto &mod : modules)
             failures += resolveSymbols(*this, *mod);
         for (auto &mod : modules)
-            mangleNames(*this, *mod);
-        for (auto &mod : modules)
             analyzeSemantics(*this, *mod);
         return failures;
     }
