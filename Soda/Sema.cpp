@@ -22,6 +22,7 @@ namespace Soda
     // void return with value
     // return value from void function
     // if/loop conditions are compatible with boolean
+    // only one destructor per struct
 
     bool analyzeSemantics(Compiler &compiler, AstNode &node)
     {

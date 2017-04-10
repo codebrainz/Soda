@@ -52,7 +52,7 @@ namespace Soda
             assert(currentScope());
             if (!currentScope()->isDefined(decl.name, false)) {
                 currentScope()->define(kind, &decl);
-            } else if (kind == SK_FUNCTION) {
+            } else if (kind == SK_FUNCTION || kind == SK_CONSTRUCTOR) {
                 auto sym = currentScope()->lookup(decl.name, false);
                 assert(sym);
                 static_cast< OverloadedSymbol * >(sym)->addOverload(&decl);

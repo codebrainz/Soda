@@ -86,8 +86,8 @@ namespace Soda
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
                << ")\\n"
                << n.name;
-            if (!n.mangledName.empty())
-                os << "\\n" << n.mangledName;
+            //if (!n.mangledName.empty())
+            //    os << "\\n" << n.mangledName;
             os << "\", shape=box];\n";
             n.acceptChildren(*this);
         }
@@ -99,8 +99,8 @@ namespace Soda
                 os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
                    << id << ")\\n"
                    << n.name;
-                if (!n.refSymbol->mangledName().empty())
-                    os << "\\n" << n.refSymbol->mangledName();
+                //if (!n.refSymbol->mangledName().empty())
+                //    os << "\\n" << n.refSymbol->mangledName();
                 if (n.refSymbol->kind == SK_FUNCTION) {
                     os << "\\nref="
                        << idTable.nodeId(
@@ -287,6 +287,14 @@ namespace Soda
             handleNamedNode(n);
         }
         virtual void visit(AstDelegateDecl &n) override final
+        {
+            handleNamedNode(n);
+        }
+        virtual void visit(AstConstructorDecl &n) override final
+        {
+            handleNamedNode(n);
+        }
+        virtual void visit(AstDestructorDecl &n) override final
         {
             handleNamedNode(n);
         }
@@ -486,6 +494,14 @@ namespace Soda
             handleEdge(n);
         }
         virtual void visit(AstDelegateDecl &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstConstructorDecl &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstDestructorDecl &n) override final
         {
             handleEdge(n);
         }

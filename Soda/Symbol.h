@@ -18,6 +18,8 @@ namespace Soda
         SK_DELEGATE,
         SK_VARIABLE,
         SK_NAMESPACE,
+        SK_CONSTRUCTOR,
+        SK_DESTRUCTOR,
         SK_STRUCT,
         SK_ENUMERATOR,
         SK_ENUM,

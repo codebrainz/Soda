@@ -44,6 +44,8 @@ namespace Soda
     struct AstParamDecl;
     struct AstFuncDecl;
     struct AstDelegateDecl;
+    struct AstConstructorDecl;
+    struct AstDestructorDecl;
     struct AstStructDecl;
     struct AstEnumeratorDecl;
     struct AstEnumDecl;
@@ -93,6 +95,8 @@ namespace Soda
         virtual void visit(AstParamDecl &) = 0;
         virtual void visit(AstFuncDecl &) = 0;
         virtual void visit(AstDelegateDecl &) = 0;
+        virtual void visit(AstConstructorDecl &) = 0;
+        virtual void visit(AstDestructorDecl &) = 0;
         virtual void visit(AstStructDecl &) = 0;
         virtual void visit(AstEnumeratorDecl &) = 0;
         virtual void visit(AstEnumDecl &) = 0;
@@ -143,6 +147,8 @@ namespace Soda
         virtual void visit(AstParamDecl &n) override;
         virtual void visit(AstFuncDecl &n) override;
         virtual void visit(AstDelegateDecl &n) override;
+        virtual void visit(AstConstructorDecl &n) override;
+        virtual void visit(AstDestructorDecl &n) override;
         virtual void visit(AstStructDecl &n) override;
         virtual void visit(AstEnumeratorDecl &n) override;
         virtual void visit(AstEnumDecl &n) override;

@@ -248,6 +248,22 @@ namespace Soda
             closeParentScope(n);
         }
 
+        virtual void visit(AstConstructorDecl &n) override final
+        {
+            define(SK_CONSTRUCTOR, n);
+            openParentScope(n);
+            n.acceptChildren(*this);
+            closeParentScope(n);
+        }
+
+        virtual void visit(AstDestructorDecl &n) override final
+        {
+            define(SK_DESTRUCTOR, n);
+            openParentScope(n);
+            n.acceptChildren(*this);
+            closeParentScope(n);
+        }
+
         virtual void visit(AstStructDecl &n) override final
         {
             define(SK_STRUCT, n);

@@ -32,7 +32,7 @@ namespace Soda
             std::string name;
             name.reserve(dottedName.size());
             for (auto &ch : dottedName) {
-                if (ch != '.')
+                if (ch != '.' && ch != '~')
                     name += ch;
                 else
                     name += '_';
@@ -110,6 +110,22 @@ namespace Soda
         {
             mangleName(n);
             nameStack.push_back(n.name);
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstConstructorDecl &n)
+        {
+            mangleName(n);
+            nameStack.push_back(n.name);
+            n.acceptChildren(*this);
+            nameStack.pop_back();
+        }
+
+        virtual void visit(AstDestructorDecl &n)
+        {
+            mangleName(n);
+            nameStack.push_back(mangleDottedName(n.name));
             n.acceptChildren(*this);
             nameStack.pop_back();
         }

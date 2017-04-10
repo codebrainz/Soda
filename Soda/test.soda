@@ -1,2 +1,20 @@
-@int(width=3,rank=2)
-struct bool {}
+
+struct Foo {
+    int aMember;
+    float bMember;
+    Foo(int a) {
+        aMember = a;
+    }
+    Foo(float b) {
+        bMember = b;
+    }
+    ~Foo() {
+    }
+}
+
+int main()
+{
+    Foo fa = Foo(1);
+    Foo fb = Foo(1.0);
+    return 0;
+}

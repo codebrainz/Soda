@@ -84,6 +84,20 @@ namespace Soda
             closeScope(n);
         }
 
+        virtual void visit(AstConstructorDecl &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
+        virtual void visit(AstDestructorDecl &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
         virtual void visit(AstStructDecl &n) override final
         {
             openScope(n);

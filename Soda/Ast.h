@@ -59,6 +59,8 @@ namespace Soda
         NK_PARAM_DECL,
         NK_FUNC_DECL,
         NK_DELEGATE_DECL,
+        NK_CONSTRUCTOR_DECL,
+        NK_DESTRUCTOR_DECL,
         NK_STRUCT_DECL,
         NK_ENUMERATOR_DECL,
         NK_ENUM_DECL,
@@ -936,6 +938,46 @@ namespace Soda
                 param->accept(v);
         }
         AST_VISITABLE(DelegateDecl)
+    };
+
+    struct AstConstructorDecl final : public AstDecl
+    {
+        SymbolTable scope;
+        AstDeclList params;
+        AstStmtList stmts;
+        AstConstructorDecl(std::string name, AstDeclList params,
+            AstStmtList stmts, Token *start, Token *end)
+            : AstDecl(DF_NONE, std::move(name), NK_CONSTRUCTOR_DECL, start, end)
+            , params(std::move(params))
+            , stmts(std::move(stmts))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            for (auto &param : params)
+                param->accept(v);
+            for (auto &stmt : stmts)
+                stmt->accept(v);
+        }
+        AST_VISITABLE(ConstructorDecl)
+    };
+
+    struct AstDestructorDecl final : public AstDecl
+    {
+        SymbolTable scope;
+        AstStmtList stmts;
+        AstDestructorDecl(
+            std::string name, AstStmtList stmts, Token *start, Token *end)
+            : AstDecl(DF_NONE, std::move(name), NK_DESTRUCTOR_DECL, start, end)
+            , stmts(std::move(stmts))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            for (auto &stmt : stmts)
+                stmt->accept(v);
+        }
+        AST_VISITABLE(DestructorDecl)
     };
 
     struct AstStructDecl final : public AstDecl

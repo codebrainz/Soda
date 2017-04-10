@@ -1464,8 +1464,117 @@ namespace Soda
                 std::move(name), std::move(typeRef), startToken, endToken);
         }
 
+        //> constructor_decl: IDENT '(' parameter* ')' '{' stmt* '}'
+        //>                 ;
+        AstDeclPtr parseConstructor(const std::string &structName)
+        {
+            auto startToken = currentToken();
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            if (name != structName) {
+                compiler.error(*startToken,
+                    "constructor name '%' does not match struct name '%'", name,
+                    structName);
+                return nullptr;
+            }
+            if (!expect('('))
+                return nullptr;
+            AstDeclList params;
+            if (!accept(')')) {
+                while (true) {
+                    if (auto param = parseParameter()) {
+                        params.push_back(std::move(param));
+                        if (!accept(','))
+                            break;
+                    } else {
+                        break;
+                    }
+                }
+                if (!expect(')'))
+                    return nullptr;
+            }
+            if (!expect('{'))
+                return nullptr;
+            AstStmtList stmts;
+            auto endToken = currentToken();
+            if (!accept('}')) {
+                while (true) {
+                    if (auto stmt = parseLocalStmt()) {
+                        if (!isIgnored(stmt))
+                            stmts.push_back(std::move(stmt));
+                    } else {
+                        break;
+                    }
+                }
+                endToken = currentToken();
+                if (!expect('}'))
+                    return nullptr;
+            }
+            return std::make_unique< AstConstructorDecl >(std::move(name),
+                std::move(params), std::move(stmts), startToken, endToken);
+        }
+
+        //> destructor_decl: '~' IDENT '(' ')' '{' stmt* '}'
+        //>                ;
+        AstDeclPtr parseDestructor(const std::string &structName)
+        {
+            auto startToken = currentToken();
+            if (!expect('~'))
+                return nullptr;
+            auto name = tokenText();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            if (name != structName) {
+                compiler.error(*startToken,
+                    "destructor name '%' does not match struct name '%'", name,
+                    structName);
+                return nullptr;
+            }
+            name = '~' + name;
+            if (!expect('('))
+                return nullptr;
+            if (!expect(')'))
+                return nullptr;
+            if (!expect('{'))
+                return nullptr;
+            AstStmtList stmts;
+            auto endToken = currentToken();
+            if (!accept('}')) {
+                while (true) {
+                    if (auto stmt = parseLocalStmt()) {
+                        if (!isIgnored(stmt))
+                            stmts.push_back(std::move(stmt));
+                    } else {
+                        break;
+                    }
+                }
+                endToken = currentToken();
+                if (!expect('}'))
+                    return nullptr;
+            }
+            return std::make_unique< AstDestructorDecl >(
+                std::move(name), std::move(stmts), startToken, endToken);
+        }
+
+        //> struct_member: constructor_decl
+        //>              | destructor_decl
+        //>              | decl
+        //>              ;
+        AstDeclPtr parseStructMember(const std::string &structName)
+        {
+            if (currentToken()->kind == TK_IDENT && tokenText() == structName
+                && peekToken(1).kind == '(') {
+                return parseConstructor(structName);
+            } else if (currentToken()->kind == '~'
+                && peekToken(1).kind == TK_IDENT && peekToken(2).kind == '(') {
+                return parseDestructor(structName);
+            }
+            return parseDecl();
+        }
+
         //> struct: STRUCT IDENT ';'
-        //>       | STRUCT IDENT '{' decl* '}'
+        //>       | STRUCT IDENT '{' struct_member* '}'
         //>       ;
         AstDeclPtr parseStruct()
         {
@@ -1483,7 +1592,7 @@ namespace Soda
                 endToken = currentToken();
                 if (!accept('}')) {
                     while (true) {
-                        if (auto decl = parseDecl()) {
+                        if (auto decl = parseStructMember(name)) {
                             if (!isIgnored(decl))
                                 members.push_back(std::move(decl));
                         } else {
