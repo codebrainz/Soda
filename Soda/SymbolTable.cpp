@@ -10,19 +10,20 @@ namespace Soda
     {
     }
 
-    bool SymbolTable::define(SymbolKind kind, AstDecl *decl)
+    Symbol *SymbolTable::define(AstDecl *decl)
     {
         assert(decl);
-        if (isDefined(decl->name, false))
-            return false;
-        if (kind == SK_FUNCTION || kind == SK_CONSTRUCTOR) {
-            table.emplace(
-                decl->name, std::make_unique< OverloadedSymbol >(kind, decl));
+        auto sym = lookup(decl->name, false);
+        if (sym) {
+            if (sym->isOverloadable()) {
+                sym->addOverload(decl);
+                return sym;
+            }
         } else {
-            table.emplace(
-                decl->name, std::make_unique< BasicSymbol >(kind, decl));
+            table.emplace(decl->name, std::make_unique< Symbol >(decl));
+            return lookup(decl->name, false);
         }
-        return true;
+        return nullptr;
     }
 
     Symbol *SymbolTable::lookup(const std::string &name, bool rec)

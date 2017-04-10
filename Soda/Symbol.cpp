@@ -5,28 +5,48 @@
 namespace Soda
 {
 
-    std::string BasicSymbol::name() const
+    Symbol::Symbol(AstDecl *decl)
     {
         assert(decl);
-        return decl->name;
+        overloads.emplace_back(decl);
     }
 
-    std::string BasicSymbol::mangledName() const
+    bool Symbol::isOverloadable() const
+    {
+        return (primaryDecl()->kind == NK_FUNC_DECL
+            || primaryDecl()->kind == NK_CONSTRUCTOR_DECL);
+    }
+
+    bool Symbol::isOverloaded() const
+    {
+        if (isOverloadable())
+            return (overloads.size() > 1);
+        return false;
+    }
+
+    bool Symbol::isTypeSymbol() const
+    {
+        return primaryDecl()->isTypeDecl();
+    }
+
+    const std::string &Symbol::name() const
+    {
+        return primaryDecl()->name;
+    }
+
+    bool Symbol::addOverload(AstDecl *decl)
     {
         assert(decl);
-        return decl->mangledName;
+        if (!isOverloadable())
+            return false;
+        overloads.emplace_back(decl);
+        return true;
     }
 
-    std::string OverloadedSymbol::name() const
+    AstDecl *Symbol::primaryDecl() const
     {
-        assert(!decls.empty());
-        return decls[0]->name;
-    }
-
-    std::string OverloadedSymbol::mangledName() const
-    {
-        assert(!decls.empty());
-        return decls[0]->mangledName;
+        assert(!overloads.empty());
+        return overloads.at(0);
     }
 
 } // namespace Soda

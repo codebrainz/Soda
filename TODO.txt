@@ -3,5 +3,4 @@
 - Make NameMangler.cpp visit functions override final
 - Add function literals/expressions/lambdas
 - Get rid of nil
-- Get rid of Symbol class
 - Work on type representation

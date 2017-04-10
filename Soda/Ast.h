@@ -255,12 +255,6 @@ namespace Soda
             , refSymbol(nullptr)
         {
         }
-        std::string mangledName() const
-        {
-            if (refSymbol)
-                return refSymbol->mangledName();
-            return name;
-        }
         AST_VISITABLE(Identifier)
     };
 

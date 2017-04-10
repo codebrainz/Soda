@@ -86,8 +86,6 @@ namespace Soda
             os << "\tnode_" << id << " [label=\"" << n.kindName() << " (" << id
                << ")\\n"
                << n.name;
-            //if (!n.mangledName.empty())
-            //    os << "\\n" << n.mangledName;
             os << "\", shape=box];\n";
             n.acceptChildren(*this);
         }
@@ -99,19 +97,8 @@ namespace Soda
                 os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("
                    << id << ")\\n"
                    << n.name;
-                //if (!n.refSymbol->mangledName().empty())
-                //    os << "\\n" << n.refSymbol->mangledName();
-                if (n.refSymbol->kind == SK_FUNCTION) {
-                    os << "\\nref="
-                       << idTable.nodeId(
-                              *(static_cast< OverloadedSymbol * >(n.refSymbol)
-                                      ->decls[0]));
-                } else {
-                    os << "\\nref="
-                       << idTable.nodeId(*(
-                              static_cast< BasicSymbol * >(n.refSymbol)->decl));
-                }
-                os << "\", shape=box];\n";
+                os << "\\nref=" << idTable.nodeId(*(n.refSymbol->primaryDecl()))
+                   << "\", shape=box];\n";
             } else {
                 auto id = idTable.nodeId(n);
                 os << "\tnode_" << id << " [label=\"" << n.kindName() << " ("

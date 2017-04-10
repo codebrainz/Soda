@@ -17,7 +17,7 @@ namespace Soda
 
         SymbolTable *parent;
         SymbolTable(SymbolTable *parent = nullptr);
-        bool define(SymbolKind kind, AstDecl *decl);
+        Symbol *define(AstDecl *decl);
         Symbol *lookup(const std::string &name, bool rec = true);
         bool isDefined(const std::string &name, bool rec = true)
         {

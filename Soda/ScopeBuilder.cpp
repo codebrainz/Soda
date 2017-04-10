@@ -190,7 +190,7 @@ namespace Soda
         }
         virtual void visit(AstLabelDecl &n) override final
         {
-            define(SK_LABEL, n);
+            define(n);
             beginParent(n);
             n.acceptChildren(*this);
             endParent(n);
@@ -202,7 +202,7 @@ namespace Soda
 
         virtual void visit(AstTypedef &n) override final
         {
-            define(SK_TYPEDEF, n);
+            define(n);
             beginParent(n);
             n.acceptChildren(*this);
             endParent(n);
@@ -210,7 +210,7 @@ namespace Soda
 
         virtual void visit(AstNamespaceDecl &n) override final
         {
-            define(SK_NAMESPACE, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -218,7 +218,7 @@ namespace Soda
 
         virtual void visit(AstVarDecl &n) override final
         {
-            define(SK_VARIABLE, n);
+            define(n);
             beginParent(n);
             n.acceptChildren(*this);
             endParent(n);
@@ -226,7 +226,7 @@ namespace Soda
 
         virtual void visit(AstParamDecl &n) override final
         {
-            define(SK_VARIABLE, n);
+            define(n);
             beginParent(n);
             n.acceptChildren(*this);
             endParent(n);
@@ -234,7 +234,7 @@ namespace Soda
 
         virtual void visit(AstFuncDecl &n) override final
         {
-            define(SK_FUNCTION, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -242,7 +242,7 @@ namespace Soda
 
         virtual void visit(AstDelegateDecl &n) override final
         {
-            define(SK_DELEGATE, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -250,7 +250,7 @@ namespace Soda
 
         virtual void visit(AstConstructorDecl &n) override final
         {
-            define(SK_CONSTRUCTOR, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -258,7 +258,7 @@ namespace Soda
 
         virtual void visit(AstDestructorDecl &n) override final
         {
-            define(SK_DESTRUCTOR, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -266,7 +266,7 @@ namespace Soda
 
         virtual void visit(AstStructDecl &n) override final
         {
-            define(SK_STRUCT, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
@@ -274,7 +274,7 @@ namespace Soda
 
         virtual void visit(AstEnumeratorDecl &n) override final
         {
-            define(SK_ENUMERATOR, n);
+            define(n);
             beginParent(n);
             n.acceptChildren(*this);
             endParent(n);
@@ -282,7 +282,7 @@ namespace Soda
 
         virtual void visit(AstEnumDecl &n) override final
         {
-            define(SK_ENUM, n);
+            define(n);
             openParentScope(n);
             n.acceptChildren(*this);
             closeParentScope(n);
