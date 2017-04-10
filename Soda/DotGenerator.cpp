@@ -73,6 +73,8 @@ namespace Soda
                 os << "c ";
             if (n.typeFlags & TF_POINTER)
                 os << "p";
+            if (n.typeFlags & TF_INFERRED)
+                os << "i";
             if (!n.name.empty())
                 os << "\\n" << n.name;
             os << "\", shape=box];\n";

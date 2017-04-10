@@ -5,4 +5,3 @@
 - Work on type representation
 - Implement type checking and inference
 - Fix compilation model WRT global scope and modules
-- Allow auto/var/let deduced types

@@ -113,7 +113,8 @@ namespace Soda
                 { "enum", TK_ENUM }, { "namespace", TK_NAMESPACE },
                 { "using", TK_USING }, { "delegate", TK_DELEGATE },
                 { "try", TK_TRY }, { "catch", TK_CATCH },
-                { "finally", TK_FINALLY }, { "function", TK_FUNCTION } };
+                { "finally", TK_FINALLY }, { "function", TK_FUNCTION },
+                { "auto", TK_AUTO } };
         auto len = token.end - token.start;
         for (auto &kwd : kwds) {
             if (kwd.first.length() != len)
@@ -547,6 +548,8 @@ namespace Soda
             return "FINALLY_KWD";
         case TK_FUNCTION:
             return "FUNCTION_KWD";
+        case TK_AUTO:
+            return "AUTO_KWD";
         case TK_ELLIPSIS:
             return "ELLIPSIS";
         case TK_BOOL_ATTR:

@@ -1362,11 +1362,17 @@ namespace Soda
                 std::move(text), std::move(stmt), startToken, endToken);
         }
 
-        //> type_member: TK_IDENT
+        //> type_member: TK_AUTO
+        //>            | TK_IDENT
         //>            | type_member '.' TK_IDENT
         //>            ;
         bool parseTypeMember(std::string &composedName, Token **endToken)
         {
+            *endToken = currentToken();
+            if (accept(TK_AUTO)) {
+                composedName.clear();
+                return true;
+            }
             while (true) {
                 auto name = tokenText();
                 *endToken = currentToken();
@@ -1394,6 +1400,8 @@ namespace Soda
             Token *endToken = nullptr;
             if (!parseTypeMember(name, &endToken))
                 return nullptr;
+            if (name.empty())
+                typeFlags = TypeFlags(typeFlags | TF_INFERRED);
             auto typeRef = std::make_unique< AstTypeRef >(
                 name, typeFlags, startToken, endToken);
             while (true) {

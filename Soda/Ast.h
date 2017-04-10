@@ -300,6 +300,7 @@ namespace Soda
         TF_CONST = 1,
         TF_POINTER = 2,
         TF_ARRAY = 4,
+        TF_INFERRED = 8,
     };
 
     struct AstTypeRef final : public AstNode
