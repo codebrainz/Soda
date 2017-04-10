@@ -180,7 +180,7 @@ namespace Soda
 
     struct AstNil final : public AstExpr
     {
-        AstNil(Token *start = nullptr, Token *end = nullptr)
+        AstNil(Token *start, Token *end)
             : AstExpr(NK_NIL, start, end)
         {
         }
@@ -190,7 +190,7 @@ namespace Soda
     struct AstBool final : public AstExpr
     {
         bool value;
-        AstBool(bool value, Token *start = nullptr, Token *end = nullptr)
+        AstBool(bool value, Token *start, Token *end)
             : AstExpr(NK_BOOL, start, end)
             , value(value)
         {
@@ -201,8 +201,7 @@ namespace Soda
     struct AstInt final : public AstExpr
     {
         unsigned long long int value;
-        AstInt(unsigned long long int value, Token *start = nullptr,
-            Token *end = nullptr)
+        AstInt(unsigned long long int value, Token *start, Token *end)
             : AstExpr(NK_INT, start, end)
             , value(value)
         {
@@ -213,8 +212,7 @@ namespace Soda
     struct AstFloat final : public AstExpr
     {
         long double value;
-        AstFloat(
-            long double value, Token *start = nullptr, Token *end = nullptr)
+        AstFloat(long double value, Token *start, Token *end)
             : AstExpr(NK_FLOAT, start, end)
             , value(value)
         {
@@ -225,7 +223,7 @@ namespace Soda
     struct AstChar final : public AstExpr
     {
         std::string value;
-        AstChar(std::string value, Token *start = nullptr, Token *end = nullptr)
+        AstChar(std::string value, Token *start, Token *end)
             : AstExpr(NK_CHAR, start, end)
             , value(std::move(value))
         {
@@ -236,8 +234,7 @@ namespace Soda
     struct AstString final : public AstExpr
     {
         std::string value;
-        AstString(
-            std::string value, Token *start = nullptr, Token *end = nullptr)
+        AstString(std::string value, Token *start, Token *end)
             : AstExpr(NK_STRING, start, end)
             , value(std::move(value))
         {
@@ -249,8 +246,7 @@ namespace Soda
     {
         std::string name;
         Symbol *refSymbol;
-        AstIdentifier(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        AstIdentifier(std::string name, Token *start, Token *end)
             : AstExpr(NK_IDENTIFIER, start, end)
             , name(name)
             , refSymbol(nullptr)
@@ -263,8 +259,7 @@ namespace Soda
     {
         UnaryOperator op;
         AstExprPtr operand;
-        AstUnary(UnaryOperator op, AstExprPtr operand, Token *start = nullptr,
-            Token *end = nullptr)
+        AstUnary(UnaryOperator op, AstExprPtr operand, Token *start, Token *end)
             : AstExpr(NK_UNARY, start, end)
             , op(op)
             , operand(std::move(operand))
@@ -283,7 +278,7 @@ namespace Soda
         AstExprPtr left;
         AstExprPtr right;
         AstBinary(BinaryOperator op, AstExprPtr left, AstExprPtr right,
-            Token *start = nullptr, Token *end = nullptr)
+            Token *start, Token *end)
             : AstExpr(NK_BINARY, start, end)
             , op(op)
             , left(std::move(left))
@@ -311,16 +306,15 @@ namespace Soda
         std::string name;
         NodePtrType< AstTypeRef > refType;
         TypeFlags typeFlags;
-        AstTypeRef(std::string name, TypeFlags typeFlags = TF_NONE,
-            Token *start = nullptr, Token *end = nullptr)
+        AstTypeRef(
+            std::string name, TypeFlags typeFlags, Token *start, Token *end)
             : AstNode(NK_TYPEREF, start, end)
             , name(std::move(name))
             , typeFlags(typeFlags)
         {
         }
-        AstTypeRef(NodePtrType< AstTypeRef > refType,
-            TypeFlags typeFlags = TF_NONE, Token *start = nullptr,
-            Token *end = nullptr)
+        AstTypeRef(NodePtrType< AstTypeRef > refType, TypeFlags typeFlags,
+            Token *start, Token *end)
             : AstNode(NK_TYPEREF, start, end)
             , refType(std::move(refType))
             , typeFlags(typeFlags)
@@ -341,8 +335,8 @@ namespace Soda
     {
         AstTypeRefPtr typeRef;
         AstExprPtr expr;
-        AstCast(AstTypeRefPtr typeRef, AstExprPtr expr, Token *start = nullptr,
-            Token *end = nullptr)
+        AstCast(
+            AstTypeRefPtr typeRef, AstExprPtr expr, Token *start, Token *end)
             : AstExpr(NK_CAST, start, end)
             , typeRef(std::move(typeRef))
             , expr(std::move(expr))
@@ -362,7 +356,7 @@ namespace Soda
         AstExprPtr thenExpr;
         AstExprPtr elseExpr;
         AstIfExpr(AstExprPtr condExpr, AstExprPtr thenExpr, AstExprPtr elseExpr,
-            Token *start = nullptr, Token *end = nullptr)
+            Token *start, Token *end)
             : AstExpr(NK_IF_EXPR, start, end)
             , condExpr(std::move(condExpr))
             , thenExpr(std::move(thenExpr))
@@ -382,8 +376,8 @@ namespace Soda
     {
         AstExprPtr callee;
         AstExprList arguments;
-        AstCallExpr(AstExprPtr callee, AstExprList args, Token *start = nullptr,
-            Token *end = nullptr)
+        AstCallExpr(
+            AstExprPtr callee, AstExprList args, Token *start, Token *end)
             : AstExpr(NK_CALL_EXPR, start, end)
             , callee(std::move(callee))
             , arguments(std::move(args))
@@ -402,8 +396,8 @@ namespace Soda
     {
         AstExprPtr object;
         AstExprPtr index;
-        AstIndexExpr(AstExprPtr object, AstExprPtr index,
-            Token *start = nullptr, Token *end = nullptr)
+        AstIndexExpr(
+            AstExprPtr object, AstExprPtr index, Token *start, Token *end)
             : AstExpr(NK_INDEX_EXPR, start, end)
             , object(std::move(object))
             , index(std::move(index))
@@ -421,8 +415,8 @@ namespace Soda
     {
         AstExprPtr object;
         AstExprPtr member;
-        AstMemberExpr(AstExprPtr object, AstExprPtr member,
-            Token *start = nullptr, Token *end = nullptr)
+        AstMemberExpr(
+            AstExprPtr object, AstExprPtr member, Token *start, Token *end)
             : AstExpr(NK_MEMBER_EXPR, start, end)
             , object(std::move(object))
             , member(std::move(member))
@@ -438,7 +432,7 @@ namespace Soda
 
     struct AstEmptyStmt final : public AstDecl // allows using as a decl or stmt
     {
-        AstEmptyStmt(Token *start = nullptr, Token *end = nullptr)
+        AstEmptyStmt(Token *start, Token *end)
             : AstDecl(DF_NONE, "", NK_EMPTY_STMT, start, end)
         {
         }
@@ -448,8 +442,7 @@ namespace Soda
     struct AstExprStmt final : public AstStmt
     {
         AstExprPtr expr;
-        AstExprStmt(
-            AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+        AstExprStmt(AstExprPtr expr, Token *start, Token *end)
             : AstStmt(NK_EXPR_STMT, start, end)
             , expr(std::move(expr))
         {
@@ -465,8 +458,7 @@ namespace Soda
     {
         SymbolTable scope;
         AstStmtList stmts;
-        AstBlockStmt(
-            AstStmtList stmts, Token *start = nullptr, Token *end = nullptr)
+        AstBlockStmt(AstStmtList stmts, Token *start, Token *end)
             : AstStmt(NK_BLOCK_STMT, start, end)
             , stmts(std::move(stmts))
         {
@@ -482,8 +474,7 @@ namespace Soda
     struct AstReturnStmt final : public AstStmt
     {
         AstExprPtr expr;
-        AstReturnStmt(
-            AstExprPtr expr, Token *start = nullptr, Token *end = nullptr)
+        AstReturnStmt(AstExprPtr expr, Token *start, Token *end)
             : AstStmt(NK_RETURN_STMT, start, end)
             , expr(std::move(expr))
         {
@@ -502,7 +493,7 @@ namespace Soda
 
     struct AstBreakStmt final : public AstStmt
     {
-        AstBreakStmt(Token *start = nullptr, Token *end = nullptr)
+        AstBreakStmt(Token *start, Token *end)
             : AstStmt(NK_BREAK_STMT, start, end)
         {
         }
@@ -511,7 +502,7 @@ namespace Soda
 
     struct AstContinueStmt final : public AstStmt
     {
-        AstContinueStmt(Token *start = nullptr, Token *end = nullptr)
+        AstContinueStmt(Token *start, Token *end)
             : AstStmt(NK_CONTINUE_STMT, start, end)
         {
         }
@@ -522,8 +513,7 @@ namespace Soda
     {
         std::string label;
         Symbol *refSymbol;
-        AstGotoStmt(
-            std::string label, Token *start = nullptr, Token *end = nullptr)
+        AstGotoStmt(std::string label, Token *start, Token *end)
             : AstStmt(NK_GOTO_STMT, start, end)
             , label(std::move(label))
             , refSymbol(nullptr)
@@ -539,7 +529,7 @@ namespace Soda
         AstStmtPtr thenStmt;
         AstStmtPtr elseStmt;
         AstIfStmt(AstNodePtr condNode, AstStmtPtr thenStmt, AstStmtPtr elseStmt,
-            Token *start = nullptr, Token *end = nullptr)
+            Token *start, Token *end)
             : AstStmt(NK_IF_STMT, start, end)
             , condNode(std::move(condNode))
             , thenStmt(std::move(thenStmt))
@@ -561,8 +551,8 @@ namespace Soda
         SymbolTable scope;
         AstExprPtr expr;
         AstStmtList stmts;
-        AstCaseStmt(AstExprPtr expr, AstStmtList stmts, Token *start = nullptr,
-            Token *end = nullptr)
+        AstCaseStmt(
+            AstExprPtr expr, AstStmtList stmts, Token *start, Token *end)
             : AstStmt(NK_CASE_STMT, start, end)
             , expr(std::move(expr))
             , stmts(std::move(stmts))
@@ -587,8 +577,8 @@ namespace Soda
         SymbolTable scope;
         AstNodePtr testNode;
         AstStmtList cases;
-        AstSwitchStmt(AstNodePtr testNode, AstStmtList cases,
-            Token *start = nullptr, Token *end = nullptr)
+        AstSwitchStmt(
+            AstNodePtr testNode, AstStmtList cases, Token *start, Token *end)
             : AstStmt(NK_SWITCH_STMT, start, end)
             , testNode(std::move(testNode))
             , cases(std::move(cases))
@@ -611,8 +601,7 @@ namespace Soda
         AstExprPtr incrExpr;
         AstStmtPtr stmt;
         AstForStmt(AstNodePtr initNode, AstExprPtr testExpr,
-            AstExprPtr incrExpr, AstStmtPtr stmt, Token *start = nullptr,
-            Token *end = nullptr)
+            AstExprPtr incrExpr, AstStmtPtr stmt, Token *start, Token *end)
             : AstStmt(NK_FOR_STMT, start, end)
             , initNode(std::move(initNode))
             , testExpr(std::move(testExpr))
@@ -637,8 +626,7 @@ namespace Soda
     {
         AstStmtPtr stmt;
         AstExprPtr expr;
-        AstDoStmt(AstStmtPtr stmt, AstExprPtr expr, Token *start = nullptr,
-            Token *end = nullptr)
+        AstDoStmt(AstStmtPtr stmt, AstExprPtr expr, Token *start, Token *end)
             : AstStmt(NK_DO_STMT, start, end)
             , stmt(std::move(stmt))
             , expr(std::move(expr))
@@ -656,8 +644,7 @@ namespace Soda
     {
         AstExprPtr expr;
         AstStmtPtr stmt;
-        AstWhileStmt(AstExprPtr expr, AstStmtPtr stmt, Token *start = nullptr,
-            Token *end = nullptr)
+        AstWhileStmt(AstExprPtr expr, AstStmtPtr stmt, Token *start, Token *end)
             : AstStmt(NK_WHILE_STMT, start, end)
             , expr(std::move(expr))
             , stmt(std::move(stmt))
@@ -676,8 +663,7 @@ namespace Soda
         SymbolTable scope;
         AstDeclPtr exc;
         AstStmtPtr stmt;
-        AstCatchStmt(AstDeclPtr exc, AstStmtPtr stmt, Token *start = nullptr,
-            Token *end = nullptr)
+        AstCatchStmt(AstDeclPtr exc, AstStmtPtr stmt, Token *start, Token *end)
             : AstStmt(NK_CATCH_STMT, start, end)
             , exc(std::move(exc))
             , stmt(std::move(stmt))
@@ -702,8 +688,7 @@ namespace Soda
     struct AstFinallyStmt final : public AstStmt
     {
         AstStmtPtr stmt;
-        AstFinallyStmt(
-            AstStmtPtr stmt, Token *start = nullptr, Token *end = nullptr)
+        AstFinallyStmt(AstStmtPtr stmt, Token *start, Token *end)
             : AstStmt(NK_FINALLY_STMT, start, end)
             , stmt(std::move(stmt))
         {
@@ -723,7 +708,7 @@ namespace Soda
         AstCatchList catchStmts;
         AstFinallyPtr finallyStmt;
         AstTryStmt(AstStmtPtr stmt, AstCatchList catchStmts, AstFinallyPtr fin,
-            Token *start = nullptr, Token *end = nullptr)
+            Token *start, Token *end)
             : AstStmt(NK_TRY_STMT, start, end)
             , stmt(std::move(stmt))
             , catchStmts(std::move(catchStmts))
@@ -743,7 +728,7 @@ namespace Soda
 
     struct AstBoolAttribute final : public AstAttribute
     {
-        AstBoolAttribute(Token *start = nullptr, Token *end = nullptr)
+        AstBoolAttribute(Token *start, Token *end)
             : AstAttribute(NK_ATTR_BOOL, start, end)
         {
         }
@@ -757,7 +742,7 @@ namespace Soda
         bool isSigned;
         uint64_t min;
         uint64_t max;
-        AstIntAttribute(Token *start = nullptr, Token *end = nullptr)
+        AstIntAttribute(Token *start, Token *end)
             : AstAttribute(NK_ATTR_INT, start, end)
             , rank(0)
             , width(0)
@@ -773,7 +758,7 @@ namespace Soda
     {
         int rank;
         int width;
-        AstFloatAttribute(Token *start = nullptr, Token *end = nullptr)
+        AstFloatAttribute(Token *start, Token *end)
             : AstAttribute(NK_ATTR_FLOAT, start, end)
             , rank(0)
             , width(0)
@@ -785,8 +770,8 @@ namespace Soda
     struct AstLabelDecl final : public AstDecl
     {
         AstStmtPtr stmt;
-        AstLabelDecl(std::string name, AstStmtPtr stmt, Token *start = nullptr,
-            Token *end = nullptr)
+        AstLabelDecl(
+            std::string name, AstStmtPtr stmt, Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_LABEL_DECL, start, end)
             , stmt(std::move(stmt))
         {
@@ -800,8 +785,7 @@ namespace Soda
 
     struct AstUsingDecl final : public AstDecl
     {
-        AstUsingDecl(
-            std::string name, Token *start = nullptr, Token *end = nullptr)
+        AstUsingDecl(std::string name, Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_USING_DECL, start, end)
         {
         }
@@ -811,8 +795,8 @@ namespace Soda
     struct AstTypedef final : public AstTypeDecl
     {
         AstTypeRefPtr typeRef;
-        AstTypedef(std::string name, AstTypeRefPtr typeRef,
-            Token *start = nullptr, Token *end = nullptr)
+        AstTypedef(
+            std::string name, AstTypeRefPtr typeRef, Token *start, Token *end)
             : AstTypeDecl(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end)
             , typeRef(std::move(typeRef))
         {
@@ -829,8 +813,8 @@ namespace Soda
     {
         SymbolTable scope;
         AstStmtList stmts;
-        AstNamespaceDecl(std::string name, AstStmtList statements,
-            Token *start = nullptr, Token *end = nullptr)
+        AstNamespaceDecl(
+            std::string name, AstStmtList statements, Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_NAMESPACE_DECL, start, end)
             , stmts(std::move(statements))
         {
@@ -848,7 +832,7 @@ namespace Soda
         AstTypeRefPtr typeRef;
         AstExprPtr initExpr;
         AstVarDecl(std::string name, AstTypeRefPtr typeRef, AstExprPtr initExpr,
-            Token *start = nullptr, Token *end = nullptr)
+            Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_VAR_DECL, start, end)
             , typeRef(std::move(typeRef))
             , initExpr(std::move(initExpr))
@@ -869,8 +853,7 @@ namespace Soda
         AstTypeRefPtr typeRef;
         AstExprPtr defaultExpr;
         AstParamDecl(std::string name, AstTypeRefPtr typeRef,
-            AstExprPtr defaultExpr, Token *start = nullptr,
-            Token *end = nullptr)
+            AstExprPtr defaultExpr, Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_PARAM_DECL, start, end)
             , typeRef(std::move(typeRef))
             , defaultExpr(std::move(defaultExpr))
@@ -893,8 +876,7 @@ namespace Soda
         AstDeclList params;
         AstStmtList stmts;
         AstFuncDecl(std::string name, AstTypeRefPtr typeRef,
-            AstDeclList parameters, AstStmtList stmts, Token *start = nullptr,
-            Token *end = nullptr)
+            AstDeclList parameters, AstStmtList stmts, Token *start, Token *end)
             : AstTypeDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end)
             , typeRef(std::move(typeRef))
             , params(std::move(parameters))
@@ -919,8 +901,7 @@ namespace Soda
         AstTypeRefPtr typeRef;
         AstDeclList params;
         AstDelegateDecl(std::string name, AstTypeRefPtr typeRef,
-            AstDeclList parameters, Token *start = nullptr,
-            Token *end = nullptr)
+            AstDeclList parameters, Token *start, Token *end)
             : AstTypeDecl(
                   DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end)
             , typeRef(std::move(typeRef))
@@ -983,7 +964,7 @@ namespace Soda
         AstTypeRefList baseTypes;
         AstDeclList members;
         AstStructDecl(std::string name, AstTypeRefList bases,
-            AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+            AstDeclList members, Token *start, Token *end)
             : AstTypeDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end)
             , baseTypes(std::move(bases))
             , members(std::move(members))
@@ -1002,8 +983,8 @@ namespace Soda
     struct AstEnumeratorDecl final : public AstDecl
     {
         AstExprPtr value;
-        AstEnumeratorDecl(std::string name, AstExprPtr value,
-            Token *start = nullptr, Token *end = nullptr)
+        AstEnumeratorDecl(
+            std::string name, AstExprPtr value, Token *start, Token *end)
             : AstDecl(DF_NONE, std::move(name), NK_ENUMERATOR_DECL, start, end)
             , value(std::move(value))
         {
@@ -1025,7 +1006,7 @@ namespace Soda
         AstEnumeratorList enumerators;
         AstDeclList members;
         AstEnumDecl(std::string name, AstEnumeratorList enumerators,
-            AstDeclList members, Token *start = nullptr, Token *end = nullptr)
+            AstDeclList members, Token *start, Token *end)
             : AstTypeDecl(DF_NONE, std::move(name), NK_ENUM_DECL, start, end)
             , enumerators(std::move(enumerators))
             , members(std::move(members))
@@ -1045,7 +1026,7 @@ namespace Soda
     {
         std::string fileName;
         AstDeclList members;
-        AstModule(Token *start = nullptr, Token *end = nullptr)
+        AstModule(Token *start, Token *end)
             : AstNode(NK_MODULE, start, end)
         {
             updateFileName();

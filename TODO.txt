@@ -5,5 +5,3 @@
 - Implement semantic analysis (see notes in Sema.cpp)
 - Work on type representation
 - Implement type checking and inference
-- Remove nullptr default argument value on AST node start/end tokens
-  in constructors.
