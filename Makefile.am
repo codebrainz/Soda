@@ -1,0 +1,2 @@
+SUBDIRS = Soda
+ACLOCAL_AMFLAGS = -I m4
