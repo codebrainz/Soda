@@ -131,13 +131,7 @@ namespace Soda
         {
             if (!node)
                 return true;
-            switch (node->kind) {
-            case NK_EMPTY_DECL:
-            case NK_EMPTY_STMT:
-                return true;
-            default:
-                return false;
-            }
+            return (node->kind == NK_EMPTY_STMT);
         }
 
         std::string tokenText()
@@ -1044,7 +1038,7 @@ namespace Soda
 
         //> empty_stmt: ';'
         //>           ;
-        AstStmtPtr parseEmptyStmt()
+        AstDeclPtr parseEmptyStmt()
         {
             auto startToken = currentToken();
             if (!expect(';'))
@@ -1935,7 +1929,7 @@ namespace Soda
             return attrs;
         }
 
-        //> decl: ';'
+        //> decl: empty_stmt
         //>     | attribute_list typedef
         //>     | attribute_list variable
         //>     | attribute_list function
@@ -1949,11 +1943,8 @@ namespace Soda
             AstAttributeList attrs = parseAttributes();
             AstDeclPtr decl;
             auto kind = currentToken()->kind;
-            auto startToken = currentToken();
             if (kind == ';') {
-                auto endToken = currentToken();
-                expect(';');
-                return std::make_unique< AstEmptyDecl >(startToken, endToken);
+                decl = parseEmptyStmt();
             } else if (kind == TK_TYPEDEF) {
                 decl = parseTypeDef();
             } else if (kind == TK_STRUCT) {

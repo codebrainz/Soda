@@ -132,10 +132,6 @@ namespace Soda
     {
         n.acceptChildren(*this);
     }
-    void AstDefaultVisitor::visit(AstEmptyDecl &n)
-    {
-        n.acceptChildren(*this);
-    }
     void AstDefaultVisitor::visit(AstLabelDecl &n)
     {
         n.acceptChildren(*this);

@@ -184,10 +184,6 @@ namespace Soda
         {
             handleBasicNode(n);
         }
-        virtual void visit(AstEmptyDecl &n) override final
-        {
-            handleBasicNode(n);
-        }
         virtual void visit(AstLabelDecl &n) override final
         {
             define(n);

@@ -48,7 +48,6 @@ namespace Soda
         NK_ATTR_BOOL,
         NK_ATTR_INT,
         NK_ATTR_FLOAT,
-        NK_EMPTY_DECL,
         NK_LABEL_DECL,
         NK_USING_DECL,
         NK_TYPENAME,
@@ -434,10 +433,10 @@ namespace Soda
         AST_VISITABLE(MemberExpr)
     };
 
-    struct AstEmptyStmt final : public AstStmt
+    struct AstEmptyStmt final : public AstDecl // allows using as a decl or stmt
     {
         AstEmptyStmt(Token *start = nullptr, Token *end = nullptr)
-            : AstStmt(NK_EMPTY_STMT, start, end)
+            : AstDecl(DF_NONE, "", NK_EMPTY_STMT, start, end)
         {
         }
         AST_VISITABLE(EmptyStmt)
@@ -708,15 +707,6 @@ namespace Soda
         {
         }
         AST_VISITABLE(FloatAttribute)
-    };
-
-    struct AstEmptyDecl final : public AstDecl
-    {
-        AstEmptyDecl(Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, "", NK_EMPTY_DECL, start, end)
-        {
-        }
-        AST_VISITABLE(EmptyDecl)
     };
 
     struct AstLabelDecl final : public AstDecl

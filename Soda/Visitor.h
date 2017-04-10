@@ -85,7 +85,6 @@ namespace Soda
         virtual void visit(AstBoolAttribute &n) = 0;
         virtual void visit(AstIntAttribute &n) = 0;
         virtual void visit(AstFloatAttribute &n) = 0;
-        virtual void visit(AstEmptyDecl &) = 0;
         virtual void visit(AstLabelDecl &) = 0;
         virtual void visit(AstUsingDecl &) = 0;
         virtual void visit(AstNamespaceDecl &) = 0;
@@ -136,7 +135,6 @@ namespace Soda
         virtual void visit(AstBoolAttribute &n) override;
         virtual void visit(AstIntAttribute &n) override;
         virtual void visit(AstFloatAttribute &n) override;
-        virtual void visit(AstEmptyDecl &n) override;
         virtual void visit(AstLabelDecl &n) override;
         virtual void visit(AstUsingDecl &n) override;
         virtual void visit(AstNamespaceDecl &n) override;
