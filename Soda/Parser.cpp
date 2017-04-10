@@ -283,6 +283,10 @@ namespace Soda
             auto stmt = parseLocalStmt();
             if (!stmt)
                 return nullptr;
+            // if not {}, rewind over trailing ';'
+            // TODO: fix this hack
+            if (stmt->kind != NK_BLOCK_STMT)
+                offset--;
             auto endToken = stmt->end;
             return std::make_unique< AstFuncExpr >(
                 std::move(params), std::move(stmt), startToken, endToken);

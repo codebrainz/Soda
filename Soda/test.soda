@@ -1,5 +1,5 @@
 int main()
 {
-    auto adder = function (int a, int b) { return a+b; };
+    auto adder = function (int a, int b) return a+b;
     return adder(1,2);
 }
