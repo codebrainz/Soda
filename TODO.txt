@@ -1,0 +1,3 @@
+- Remove unused constructors in AST nodes
+- Combine AstEmptyStmt and AstEmptyDecl
+- Work on type representation
