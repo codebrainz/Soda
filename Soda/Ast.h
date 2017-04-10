@@ -149,6 +149,23 @@ namespace Soda
             , name(std::move(name))
         {
         }
+        virtual bool isTypeDecl() const
+        {
+            return false;
+        }
+    };
+
+    struct AstTypeDecl : public AstDecl
+    {
+        AstTypeDecl(DeclFlags flags, std::string name, AstNodeKind kind,
+            Token *start, Token *end)
+            : AstDecl(flags, std::move(name), kind, start, end)
+        {
+        }
+        virtual bool isTypeDecl() const override final
+        {
+            return true;
+        }
     };
 
     typedef NodePtrType< AstNode > AstNodePtr;
@@ -776,12 +793,12 @@ namespace Soda
         AST_VISITABLE(UsingDecl)
     };
 
-    struct AstTypedef final : public AstDecl
+    struct AstTypedef final : public AstTypeDecl
     {
         AstTypeRefPtr typeRef;
         AstTypedef(std::string name, AstTypeRefPtr typeRef,
             Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end)
+            : AstTypeDecl(DF_NONE, std::move(name), NK_TYPEDEF_DECL, start, end)
             , typeRef(std::move(typeRef))
         {
         }
@@ -871,7 +888,7 @@ namespace Soda
         AST_VISITABLE(ParamDecl)
     };
 
-    struct AstFuncDecl final : public AstDecl
+    struct AstFuncDecl final : public AstTypeDecl
     {
         SymbolTable scope;
         AstTypeRefPtr typeRef;
@@ -893,7 +910,7 @@ namespace Soda
         AstFuncDecl(std::string name, AstTypeRefPtr typeRef,
             AstDeclList parameters, AstStmtList stmts, Token *start = nullptr,
             Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end)
+            : AstTypeDecl(DF_NONE, std::move(name), NK_FUNC_DECL, start, end)
             , typeRef(std::move(typeRef))
             , params(std::move(parameters))
             , stmts(std::move(stmts))
@@ -911,21 +928,23 @@ namespace Soda
         AST_VISITABLE(FuncDecl)
     };
 
-    struct AstDelegateDecl final : public AstDecl
+    struct AstDelegateDecl final : public AstTypeDecl
     {
         SymbolTable scope;
         AstTypeRefPtr typeRef;
         AstDeclList params;
         AstDelegateDecl(std::string name, AstTypeRefPtr typeRef,
             Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end)
+            : AstTypeDecl(
+                  DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end)
             , typeRef(std::move(typeRef))
         {
         }
         AstDelegateDecl(std::string name, AstTypeRefPtr typeRef,
             AstDeclList parameters, Token *start = nullptr,
             Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end)
+            : AstTypeDecl(
+                  DF_NONE, std::move(name), NK_DELEGATE_DECL, start, end)
             , typeRef(std::move(typeRef))
             , params(std::move(parameters))
         {
@@ -980,7 +999,7 @@ namespace Soda
         AST_VISITABLE(DestructorDecl)
     };
 
-    struct AstStructDecl final : public AstDecl
+    struct AstStructDecl final : public AstTypeDecl
     {
         SymbolTable scope;
         AstTypeRefList baseTypes;
@@ -1005,7 +1024,7 @@ namespace Soda
         }
         AstStructDecl(std::string name, AstTypeRefList bases,
             AstDeclList members, Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end)
+            : AstTypeDecl(DF_NONE, std::move(name), NK_STRUCT_DECL, start, end)
             , baseTypes(std::move(bases))
             , members(std::move(members))
         {
@@ -1045,7 +1064,7 @@ namespace Soda
     typedef NodePtrType< AstEnumeratorDecl > AstEnumeratorDeclPtr;
     typedef std::vector< AstEnumeratorDeclPtr > AstEnumeratorList;
 
-    struct AstEnumDecl final : public AstDecl
+    struct AstEnumDecl final : public AstTypeDecl
     {
         SymbolTable scope;
         AstEnumeratorList enumerators;
@@ -1070,7 +1089,7 @@ namespace Soda
         }
         AstEnumDecl(std::string name, AstEnumeratorList enumerators,
             AstDeclList members, Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, std::move(name), NK_ENUM_DECL, start, end)
+            : AstTypeDecl(DF_NONE, std::move(name), NK_ENUM_DECL, start, end)
             , enumerators(std::move(enumerators))
             , members(std::move(members))
         {
