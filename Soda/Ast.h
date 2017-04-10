@@ -378,19 +378,20 @@ namespace Soda
     {
         SymbolTable scope;
         AstDeclList params;
-        AstStmtPtr stmt;
+        AstStmtList stmts;
         AstFuncExpr(
-            AstDeclList params, AstStmtPtr stmt, Token *start, Token *end)
+            AstDeclList params, AstStmtList stmts, Token *start, Token *end)
             : AstExpr(NK_FUNC_EXPR, start, end)
             , params(std::move(params))
-            , stmt(std::move(stmt))
+            , stmts(std::move(stmts))
         {
         }
         virtual void acceptChildren(AstVisitor &v) override final
         {
             for (auto &param : params)
                 param->accept(v);
-            stmt->accept(v);
+            for (auto &stmt : stmts)
+                stmt->accept(v);
         }
         AST_VISITABLE(FuncExpr)
     };

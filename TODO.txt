@@ -5,3 +5,4 @@
 - Work on type representation
 - Implement type checking and inference
 - Fix compilation model WRT global scope and modules
+- Implement macro functions

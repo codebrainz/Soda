@@ -258,13 +258,13 @@ namespace Soda
             return std::make_unique< AstFloat >(val, startToken, startToken);
         }
 
-        //> func_expr: FUNCTION '(' parameter* ')' local_stmt
+        //> func_expr: '(' parameter* ')' '{' local_stmt* '}'
+        //>          ;
         AstExprPtr parseFuncExpr()
         {
+            BackTracker bt(*this);
             auto startToken = currentToken();
-            if (!expect(TK_FUNCTION))
-                return nullptr;
-            if (!expect('('))
+            if (!accept('('))
                 return nullptr;
             AstDeclList params;
             if (!accept(')')) {
@@ -277,19 +277,29 @@ namespace Soda
                         break;
                     }
                 }
-                if (!expect(')'))
+                if (!accept(')'))
                     return nullptr;
             }
-            auto stmt = parseLocalStmt();
-            if (!stmt)
+            AstStmtList stmts;
+            if (!accept('{'))
                 return nullptr;
-            // if not {}, rewind over trailing ';'
-            // TODO: fix this hack
-            if (stmt->kind != NK_BLOCK_STMT)
-                offset--;
-            auto endToken = stmt->end;
+            auto endToken = currentToken();
+            if (!accept('}')) {
+                while (true) {
+                    if (auto stmt = parseLocalStmt()) {
+                        if (!isIgnored(stmt))
+                            stmts.push_back(std::move(stmt));
+                    } else {
+                        break;
+                    }
+                }
+                endToken = currentToken();
+                if (!accept('}'))
+                    return nullptr;
+            }
+            bt.cancel();
             return std::make_unique< AstFuncExpr >(
-                std::move(params), std::move(stmt), startToken, endToken);
+                std::move(params), std::move(stmts), startToken, endToken);
         }
 
         //> primary_expr: nil_lit
@@ -324,8 +334,8 @@ namespace Soda
             else if (accept(TK_IDENT))
                 return std::make_unique< AstIdentifier >(
                     text, startToken, startToken);
-            else if (kind == TK_FUNCTION)
-                return parseFuncExpr();
+            else if (auto funExpr = parseFuncExpr())
+                return funExpr;
             else if (accept('(')) {
                 auto expr = parseExpr();
                 auto endToken = currentToken();

@@ -60,7 +60,6 @@ namespace Soda
         TK_TRY,
         TK_CATCH,
         TK_FINALLY,
-        TK_FUNCTION,
         TK_AUTO,
 
         TK_ELLIPSIS,
