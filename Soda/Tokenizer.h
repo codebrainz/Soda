@@ -57,6 +57,10 @@ namespace Soda
         TK_NAMESPACE,
         TK_USING,
 
+        TK_BOOL_ATTR,
+        TK_INT_ATTR,
+        TK_FLOAT_ATTR,
+
         TK_COMMENT,
         TK_NIL,
         TK_TRUE,

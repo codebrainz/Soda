@@ -121,10 +121,6 @@ namespace Soda
         {
             handleBasicNode(n);
         }
-        virtual void visit(AstCommentStmt &n) override final
-        {
-            handleBasicNode(n);
-        }
         virtual void visit(AstExprStmt &n) override final
         {
             handleBasicNode(n);
@@ -189,10 +185,6 @@ namespace Soda
             handleBasicNode(n);
         }
         virtual void visit(AstEmptyDecl &n) override final
-        {
-            handleBasicNode(n);
-        }
-        virtual void visit(AstCommentDecl &n) override final
         {
             handleBasicNode(n);
         }

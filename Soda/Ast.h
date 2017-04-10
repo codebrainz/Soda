@@ -34,7 +34,6 @@ namespace Soda
         NK_INDEX_EXPR,
         NK_MEMBER_EXPR,
         NK_EMPTY_STMT,
-        NK_COMMENT_STMT,
         NK_EXPR_STMT,
         NK_BLOCK_STMT,
         NK_RETURN_STMT,
@@ -47,8 +46,10 @@ namespace Soda
         NK_FOR_STMT,
         NK_DO_STMT,
         NK_WHILE_STMT,
+        NK_ATTR_BOOL,
+        NK_ATTR_INT,
+        NK_ATTR_FLOAT,
         NK_EMPTY_DECL,
-        NK_COMMENT_DECL,
         NK_LABEL_DECL,
         NK_USING_DECL,
         NK_TYPENAME,
@@ -116,6 +117,17 @@ namespace Soda
         }
     };
 
+    struct AstAttribute : public AstNode
+    {
+        AstAttribute(AstNodeKind kind, Token *start, Token *end)
+            : AstNode(kind, start, end)
+        {
+        }
+    };
+
+    typedef NodePtrType< AstAttribute > AstAttributePtr;
+    typedef std::vector< AstAttributePtr > AstAttributeList;
+
     enum DeclFlags
     {
         DF_NONE = 0,
@@ -127,6 +139,7 @@ namespace Soda
         DeclFlags flags;
         std::string name;
         std::string mangledName;
+        AstAttributeList attributes;
         AstDecl(DeclFlags flags, std::string name, AstNodeKind kind,
             Token *start, Token *end)
             : AstStmt(kind, start, end)
@@ -447,18 +460,6 @@ namespace Soda
         AST_VISITABLE(EmptyStmt)
     };
 
-    struct AstCommentStmt final : public AstStmt
-    {
-        std::string text;
-        AstCommentStmt(
-            std::string text, Token *start = nullptr, Token *end = nullptr)
-            : AstStmt(NK_COMMENT_STMT, start, end)
-            , text(std::move(text))
-        {
-        }
-        AST_VISITABLE(CommentStmt)
-    };
-
     struct AstExprStmt final : public AstStmt
     {
         AstExprPtr expr;
@@ -697,6 +698,47 @@ namespace Soda
         AST_VISITABLE(WhileStmt)
     };
 
+    struct AstBoolAttribute final : public AstAttribute
+    {
+        AstBoolAttribute(Token *start = nullptr, Token *end = nullptr)
+            : AstAttribute(NK_ATTR_BOOL, start, end)
+        {
+        }
+        AST_VISITABLE(BoolAttribute)
+    };
+
+    struct AstIntAttribute final : public AstAttribute
+    {
+        int rank;
+        int width;
+        bool isSigned;
+        uint64_t min;
+        uint64_t max;
+        AstIntAttribute(Token *start = nullptr, Token *end = nullptr)
+            : AstAttribute(NK_ATTR_INT, start, end)
+            , rank(0)
+            , width(0)
+            , isSigned(false)
+            , min(0)
+            , max(0)
+        {
+        }
+        AST_VISITABLE(IntAttribute)
+    };
+
+    struct AstFloatAttribute final : public AstAttribute
+    {
+        int rank;
+        int width;
+        AstFloatAttribute(Token *start = nullptr, Token *end = nullptr)
+            : AstAttribute(NK_ATTR_FLOAT, start, end)
+            , rank(0)
+            , width(0)
+        {
+        }
+        AST_VISITABLE(FloatAttribute)
+    };
+
     struct AstEmptyDecl final : public AstDecl
     {
         AstEmptyDecl(Token *start = nullptr, Token *end = nullptr)
@@ -704,18 +746,6 @@ namespace Soda
         {
         }
         AST_VISITABLE(EmptyDecl)
-    };
-
-    struct AstCommentDecl final : public AstDecl
-    {
-        std::string text;
-        AstCommentDecl(
-            std::string text, Token *start = nullptr, Token *end = nullptr)
-            : AstDecl(DF_NONE, "", NK_COMMENT_DECL, start, end)
-            , text(std::move(text))
-        {
-        }
-        AST_VISITABLE(Comment)
     };
 
     struct AstLabelDecl final : public AstDecl

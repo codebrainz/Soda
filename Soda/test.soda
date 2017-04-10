@@ -1,10 +1,2 @@
-int add(int a, int b)
-{
-    return a + b;
-}
-
-int main()
-{
-    add(1, 2);
-    return 0;
-}
+@int(width=3,rank=2)
+struct bool {}

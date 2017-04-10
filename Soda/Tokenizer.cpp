@@ -140,11 +140,7 @@ namespace Soda
                 while (chr != '\n');
                 token.end = offset;
                 token.kind = TK_COMMENT;
-#if 0
-                return token.kind;
-#else
                 return nextToken_(token);
-#endif
             } else if (chr == '*') {
                 char lastChar;
                 bool terminated = false;
@@ -157,21 +153,40 @@ namespace Soda
                         break;
                     }
                 } while (chr != EOF);
-                if (!terminated)
+                if (!terminated) {
                     compiler.error(token, "EOF inside of multi-line comment");
+                    token.kind = TK_ERROR;
+                    return token.kind;
+                }
                 token.end = offset;
                 token.kind = TK_COMMENT;
-#if 0
-                return token.kind;
-#else
                 return nextToken_(token);
-#endif
             } else {
                 compiler.error(token, "stray '/' in input, expecting '//' or "
                                       "'/*' to begin a comment");
+                token.kind = TK_ERROR;
+                return token.kind;
             }
-        }
-        if (isAlpha() || chr == '_') {
+        } else if (chr == '@') {
+            nextChar();
+            while (isAlnum() || chr == '_')
+                nextChar();
+            token.end = offset;
+            std::string s;
+            for (size_t i = token.start - 1; i < token.end - 1; i++)
+                s += token.file[i];
+            if (s == "@bool") {
+                token.kind = TK_BOOL_ATTR;
+            } else if (s == "@int")
+                token.kind = TK_INT_ATTR;
+            else if (s == "@float")
+                token.kind = TK_FLOAT_ATTR;
+            else {
+                token.kind = TK_ERROR;
+                compiler.error(token, "unknown attribute '%'", s);
+            }
+            return token.kind;
+        } else if (isAlpha() || chr == '_') {
             while (isAlnum() || chr == '_' || chr == '.')
                 nextChar();
             token.end = offset;
@@ -511,6 +526,12 @@ namespace Soda
             return "NAMESPACE_KWD";
         case TK_USING:
             return "USING_KWD";
+        case TK_BOOL_ATTR:
+            return "BOOL_ATTR";
+        case TK_INT_ATTR:
+            return "INT_ATTR";
+        case TK_FLOAT_ATTR:
+            return "FLOAT_ATTR";
         case TK_COMMENT:
             return "COMMENT";
         case TK_NIL:

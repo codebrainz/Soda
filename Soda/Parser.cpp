@@ -40,6 +40,7 @@ namespace Soda
         size_t offset;
         std::stack< size_t > offsetStack;
         std::stack< Token * > tokenStack;
+        std::vector< AstAttributePtr > attributes;
 
         Parser(Compiler &compiler, TokenList &tokenList)
             : compiler(compiler)
@@ -94,7 +95,7 @@ namespace Soda
             return accept(static_cast< TokenKind >(kind));
         }
 
-#if 1
+#ifdef NDEBUG
         bool expect(TokenKind kind)
         {
             if (!accept(kind)) {
@@ -133,8 +134,6 @@ namespace Soda
             switch (node->kind) {
             case NK_EMPTY_DECL:
             case NK_EMPTY_STMT:
-            case NK_COMMENT_DECL:
-            case NK_COMMENT_STMT:
                 return true;
             default:
                 return false;
@@ -214,11 +213,61 @@ namespace Soda
             return 0.0;
         }
 
-        //> primary_expr: NIL
-        //>             | TRUE
-        //>             | FALSE
-        //>             | INT
-        //>             | FLOAT
+        //> nil_lit: NIL
+        //>        ;
+        AstExprPtr parseNilLit()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_NIL))
+                return nullptr;
+            return std::make_unique< AstNil >(startToken, startToken);
+        }
+
+        //> bool_lit: TRUE
+        //>         | FALSE
+        //>         ;
+        AstExprPtr parseBoolLit()
+        {
+            auto startToken = currentToken();
+            if (accept(TK_TRUE)) {
+                return std::make_unique< AstBool >(
+                    true, startToken, startToken);
+            } else if (accept(TK_FALSE)) {
+                return std::make_unique< AstBool >(
+                    false, startToken, startToken);
+            } else {
+                return nullptr;
+            }
+        }
+
+        //> int_lit: INT
+        //>        ;
+        AstExprPtr parseIntLit()
+        {
+            auto startToken = currentToken();
+            auto text = tokenText();
+            if (!expect(TK_INT))
+                return nullptr;
+            auto val = parseIntLiteral(startToken, text);
+            return std::make_unique< AstInt >(val, startToken, startToken);
+        }
+
+        //> float_lit: FLOAT
+        //>          ;
+        AstExprPtr parseFloatLit()
+        {
+            auto startToken = currentToken();
+            auto text = tokenText();
+            if (!expect(TK_FLOAT))
+                return nullptr;
+            auto val = parseFloatLiteral(startToken, text);
+            return std::make_unique< AstFloat >(val, startToken, startToken);
+        }
+
+        //> primary_expr: nil_lit
+        //>             | bool_lit
+        //>             | int_lit
+        //>             | float_lit
         //>             | CHAR
         //>             | STRING
         //>             | IDENT
@@ -228,21 +277,15 @@ namespace Soda
         {
             auto startToken = currentToken();
             auto text = tokenText();
-            if (accept(TK_NIL))
-                return std::make_unique< AstNil >(startToken, startToken);
-            else if (accept(TK_TRUE))
-                return std::make_unique< AstBool >(
-                    true, startToken, startToken);
-            else if (accept(TK_FALSE))
-                return std::make_unique< AstBool >(
-                    false, startToken, startToken);
-            else if (accept(TK_INT))
-                return std::make_unique< AstInt >(
-                    parseIntLiteral(startToken, text), startToken, startToken);
-            else if (accept(TK_FLOAT))
-                return std::make_unique< AstFloat >(
-                    parseFloatLiteral(startToken, text), startToken,
-                    startToken);
+            auto kind = currentToken()->kind;
+            if (kind == TK_NIL)
+                return parseNilLit();
+            else if (kind == TK_TRUE || kind == TK_FALSE)
+                return parseBoolLit();
+            else if (kind == TK_INT)
+                return parseIntLit();
+            else if (kind == TK_FLOAT)
+                return parseFloatLit();
             else if (accept(TK_CHAR))
                 return std::make_unique< AstChar >(
                     text, startToken, startToken);
@@ -1120,7 +1163,6 @@ namespace Soda
         }
 
         //> local_stmt: empty_stmt
-        //>           | COMMENT
         //>           | block_stmt
         //>           | return_stmt
         //>           | break_stmt
@@ -1137,17 +1179,9 @@ namespace Soda
         //>           ;
         AstStmtPtr parseLocalStmt()
         {
-            auto startToken = currentToken();
             auto kind = currentToken()->kind;
-            if (kind == ';')
+            if (kind == ';') {
                 return parseEmptyStmt();
-            else if (kind == TK_COMMENT) {
-                auto text = tokenText();
-                auto endToken = currentToken();
-                if (!expect(TK_COMMENT))
-                    return nullptr;
-                return std::make_unique< AstCommentDecl >(
-                    text, startToken, endToken);
             } else if (kind == '{')
                 return parseBlockStmt();
             else if (kind == TK_RETURN)
@@ -1581,44 +1615,253 @@ namespace Soda
                 std::move(name), startToken, endToken);
         }
 
+        //> bool_attr: BOOL_ATTR
+        //>          ;
+        AstAttributePtr parseBoolAttribute()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_BOOL_ATTR))
+                return nullptr;
+            return std::make_unique< AstBoolAttribute >(startToken, startToken);
+        }
+
+        //> int_attr_field: 'rank' '=' INT
+        //>               | 'width' '=' INT
+        //>               | 'signed' '=' ( TRUE | FALSE )
+        //>               | 'min' '=' INT
+        //>               | 'max' '=' INT
+        //>               ;
+        //>
+        //> int_attr: INT_ATTR '(' int_attr_field ( ',' int_attr_field )* ')'
+        //>         ;
+        AstAttributePtr parseIntAttribute()
+        {
+            auto startToken = currentToken();
+            auto text = tokenText();
+            if (!expect(TK_INT_ATTR))
+                return nullptr;
+            int rank = 0;
+            int width = 0;
+            bool isSigned = false;
+            uint64_t min = 0;
+            uint64_t max = 0;
+            if (!expect('('))
+                return nullptr;
+            auto endToken = currentToken();
+            if (!accept(')')) {
+                while (true) {
+                    auto fieldName = tokenText();
+                    if (!expect(TK_IDENT))
+                        break;
+                    if (!expect('='))
+                        break;
+                    auto valueToken = currentToken();
+                    if (fieldName == "rank") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            rank = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else if (fieldName == "width") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            width = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else if (fieldName == "signed") {
+                        if (auto val = parseBoolLit()) {
+                            assert(val->kind == NK_BOOL);
+                            isSigned
+                                = static_cast< AstBool * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else if (fieldName == "min") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            min = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else if (fieldName == "max") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            max = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else {
+                        compiler.error(*startToken,
+                            "unexpected int attribute field '%'", fieldName);
+                        break;
+                    }
+                    if (!accept(','))
+                        break;
+                }
+                endToken = currentToken();
+                if (!expect(')'))
+                    return nullptr;
+            }
+            auto attr
+                = std::make_unique< AstIntAttribute >(startToken, endToken);
+            attr->rank = rank;
+            attr->width = width;
+            attr->isSigned = isSigned;
+            attr->min = min;
+            attr->max = max;
+            return attr;
+        }
+
+        //> float_attr_field: 'rank' '=' INT
+        //>                 | 'width' '=' INT
+        //>                 ;
+        //>
+        //> float_attr: FLOAT_ATTR '(' float_attr_field ( ',' float_attr_field )* ')'
+        //>           ;
+        AstAttributePtr parseFloatAttribute()
+        {
+            auto startToken = currentToken();
+            auto text = tokenText();
+            if (!expect(TK_FLOAT_ATTR))
+                return nullptr;
+            int rank = 0;
+            int width = 0;
+            if (!expect('('))
+                return nullptr;
+            auto endToken = currentToken();
+            if (!accept(')')) {
+                while (true) {
+                    auto fieldName = tokenText();
+                    if (!expect(TK_IDENT))
+                        break;
+                    if (!expect('='))
+                        break;
+                    auto valueToken = currentToken();
+                    if (fieldName == "rank") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            rank = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else if (fieldName == "width") {
+                        if (auto val = parseIntLit()) {
+                            assert(val->kind == NK_INT);
+                            width = static_cast< AstInt * >(val.get())->value;
+                        } else {
+                            compiler.error(*valueToken,
+                                "expected an integer literal for '%' field",
+                                fieldName);
+                            break;
+                        }
+                    } else {
+                        compiler.error(*startToken,
+                            "unexpected float attribute field '%'", fieldName);
+                        break;
+                    }
+                    if (!accept(','))
+                        break;
+                }
+                endToken = currentToken();
+                if (!expect(')'))
+                    return nullptr;
+            }
+            auto attr
+                = std::make_unique< AstFloatAttribute >(startToken, endToken);
+            attr->rank = rank;
+            attr->width = width;
+            return attr;
+        }
+
+        //> attribute: bool_attr
+        //>          | int_attr
+        //>          | float_attr
+        //>          ;
+        //>
+        //> attribute_list : attribute*
+        //>                ;
+        AstAttributeList parseAttributes()
+        {
+            AstAttributeList attrs;
+            while (true) {
+                auto kind = currentToken()->kind;
+                if (kind == TK_BOOL_ATTR) {
+                    if (auto attr = parseBoolAttribute())
+                        attrs.push_back(std::move(attr));
+                    else
+                        break;
+                } else if (kind == TK_INT_ATTR) {
+                    if (auto attr = parseIntAttribute())
+                        attrs.push_back(std::move(attr));
+                    else
+                        break;
+                } else if (kind == TK_FLOAT_ATTR) {
+                    if (auto attr = parseFloatAttribute())
+                        attrs.push_back(std::move(attr));
+                    else
+                        break;
+                } else {
+                    break;
+                }
+            }
+            return attrs;
+        }
+
         //> decl: ';'
-        //>     | COMMENT
-        //>     | typedef
-        //>     | variable
-        //>     | function
-        //>     | struct
-        //>     | enum
-        //>     | namespace
-        //>     | using
+        //>     | attribute_list typedef
+        //>     | attribute_list variable
+        //>     | attribute_list function
+        //>     | attribute_list struct
+        //>     | attribute_list enum
+        //>     | attribute_list namespace
+        //>     | attribute_list using
         //>     ;
         AstDeclPtr parseDecl()
         {
+            AstAttributeList attrs = parseAttributes();
+            AstDeclPtr decl;
             auto kind = currentToken()->kind;
             auto startToken = currentToken();
             if (kind == ';') {
                 auto endToken = currentToken();
                 expect(';');
                 return std::make_unique< AstEmptyDecl >(startToken, endToken);
-            } else if (kind == TK_COMMENT) {
-                std::string text;
-                currentToken()->getText(text);
-                auto endToken = currentToken();
-                expect(TK_COMMENT);
-                return std::make_unique< AstCommentDecl >(
-                    text, startToken, endToken);
             } else if (kind == TK_TYPEDEF) {
-                return parseTypeDef();
+                decl = parseTypeDef();
             } else if (kind == TK_STRUCT) {
-                return parseStruct();
+                decl = parseStruct();
             } else if (kind == TK_ENUM) {
-                return parseEnum();
+                decl = parseEnum();
             } else if (kind == TK_NAMESPACE) {
-                return parseNamespace();
+                decl = parseNamespace();
             } else if (kind == TK_USING) {
-                return parseUsing();
+                decl = parseUsing();
             } else {
-                return parseVarOrFuncDef();
+                decl = parseVarOrFuncDef();
             }
+            if (decl)
+                decl->attributes = std::move(attrs);
+            return decl;
         }
     };
 

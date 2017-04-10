@@ -21,7 +21,6 @@ namespace Soda
     struct AstIndexExpr;
     struct AstMemberExpr;
     struct AstEmptyStmt;
-    struct AstCommentStmt;
     struct AstExprStmt;
     struct AstBlockStmt;
     struct AstReturnStmt;
@@ -34,8 +33,10 @@ namespace Soda
     struct AstForStmt;
     struct AstDoStmt;
     struct AstWhileStmt;
+    struct AstBoolAttribute;
+    struct AstIntAttribute;
+    struct AstFloatAttribute;
     struct AstEmptyDecl;
-    struct AstCommentDecl;
     struct AstLabelDecl;
     struct AstUsingDecl;
     struct AstNamespaceDecl;
@@ -69,7 +70,6 @@ namespace Soda
         virtual void visit(AstIndexExpr &) = 0;
         virtual void visit(AstMemberExpr &) = 0;
         virtual void visit(AstEmptyStmt &) = 0;
-        virtual void visit(AstCommentStmt &) = 0;
         virtual void visit(AstExprStmt &) = 0;
         virtual void visit(AstBlockStmt &) = 0;
         virtual void visit(AstReturnStmt &) = 0;
@@ -82,8 +82,10 @@ namespace Soda
         virtual void visit(AstForStmt &) = 0;
         virtual void visit(AstDoStmt &) = 0;
         virtual void visit(AstWhileStmt &) = 0;
+        virtual void visit(AstBoolAttribute &n) = 0;
+        virtual void visit(AstIntAttribute &n) = 0;
+        virtual void visit(AstFloatAttribute &n) = 0;
         virtual void visit(AstEmptyDecl &) = 0;
-        virtual void visit(AstCommentDecl &) = 0;
         virtual void visit(AstLabelDecl &) = 0;
         virtual void visit(AstUsingDecl &) = 0;
         virtual void visit(AstNamespaceDecl &) = 0;
@@ -118,7 +120,6 @@ namespace Soda
         virtual void visit(AstIndexExpr &n) override;
         virtual void visit(AstMemberExpr &n) override;
         virtual void visit(AstEmptyStmt &n) override;
-        virtual void visit(AstCommentStmt &n) override;
         virtual void visit(AstExprStmt &n) override;
         virtual void visit(AstBlockStmt &n) override;
         virtual void visit(AstReturnStmt &n) override;
@@ -131,8 +132,10 @@ namespace Soda
         virtual void visit(AstForStmt &n) override;
         virtual void visit(AstDoStmt &n) override;
         virtual void visit(AstWhileStmt &n) override;
+        virtual void visit(AstBoolAttribute &n) override;
+        virtual void visit(AstIntAttribute &n) override;
+        virtual void visit(AstFloatAttribute &n) override;
         virtual void visit(AstEmptyDecl &n) override;
-        virtual void visit(AstCommentDecl &n) override;
         virtual void visit(AstLabelDecl &n) override;
         virtual void visit(AstUsingDecl &n) override;
         virtual void visit(AstNamespaceDecl &n) override;
