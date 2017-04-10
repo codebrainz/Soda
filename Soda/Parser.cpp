@@ -258,6 +258,36 @@ namespace Soda
             return std::make_unique< AstFloat >(val, startToken, startToken);
         }
 
+        //> func_expr: FUNCTION '(' parameter* ')' local_stmt
+        AstExprPtr parseFuncExpr()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_FUNCTION))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            AstDeclList params;
+            if (!accept(')')) {
+                while (true) {
+                    if (auto param = parseParameter()) {
+                        params.push_back(std::move(param));
+                        if (!accept(','))
+                            break;
+                    } else {
+                        break;
+                    }
+                }
+                if (!expect(')'))
+                    return nullptr;
+            }
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstFuncExpr >(
+                std::move(params), std::move(stmt), startToken, endToken);
+        }
+
         //> primary_expr: nil_lit
         //>             | bool_lit
         //>             | int_lit
@@ -265,6 +295,7 @@ namespace Soda
         //>             | CHAR
         //>             | STRING
         //>             | IDENT
+        //>             | func_expr
         //>             | '(' expr ')'
         //>             ;
         AstExprPtr parsePrimaryExpr()
@@ -289,6 +320,8 @@ namespace Soda
             else if (accept(TK_IDENT))
                 return std::make_unique< AstIdentifier >(
                     text, startToken, startToken);
+            else if (kind == TK_FUNCTION)
+                return parseFuncExpr();
             else if (accept('(')) {
                 auto expr = parseExpr();
                 auto endToken = currentToken();

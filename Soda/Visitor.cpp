@@ -56,6 +56,10 @@ namespace Soda
     {
         n.acceptChildren(*this);
     }
+    void AstDefaultVisitor::visit(AstFuncExpr &n)
+    {
+        n.acceptChildren(*this);
+    }
     void AstDefaultVisitor::visit(AstCallExpr &n)
     {
         n.acceptChildren(*this);

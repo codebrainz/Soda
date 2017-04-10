@@ -1,11 +1,6 @@
 int main()
 {
-    int value;
-    try {
-        value = 1 + 2.0;
-    } catch (int e) {
-        value = 1 + e;
-    } finally {
-        return value;
-    }
+    delegate int Adder(int a, int b);
+    Adder adder = function (int a, int b) { return a+b; };
+    return adder(1,2);
 }

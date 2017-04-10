@@ -29,6 +29,7 @@ namespace Soda
         NK_TYPEREF,
         NK_CAST,
         NK_IF_EXPR,
+        NK_FUNC_EXPR,
         NK_CALL_EXPR,
         NK_INDEX_EXPR,
         NK_MEMBER_EXPR,
@@ -370,6 +371,27 @@ namespace Soda
             elseExpr->accept(v);
         }
         AST_VISITABLE(IfExpr)
+    };
+
+    struct AstFuncExpr final : public AstExpr
+    {
+        SymbolTable scope;
+        AstDeclList params;
+        AstStmtPtr stmt;
+        AstFuncExpr(
+            AstDeclList params, AstStmtPtr stmt, Token *start, Token *end)
+            : AstExpr(NK_FUNC_EXPR, start, end)
+            , params(std::move(params))
+            , stmt(std::move(stmt))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            for (auto &param : params)
+                param->accept(v);
+            stmt->accept(v);
+        }
+        AST_VISITABLE(FuncExpr)
     };
 
     struct AstCallExpr final : public AstExpr

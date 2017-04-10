@@ -105,6 +105,12 @@ namespace Soda
         {
             handleBasicNode(n);
         }
+        virtual void visit(AstFuncExpr &n) override final
+        {
+            openParentScope(n);
+            n.acceptChildren(*this);
+            closeParentScope(n);
+        }
         virtual void visit(AstCallExpr &n) override final
         {
             handleBasicNode(n);

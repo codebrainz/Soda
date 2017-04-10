@@ -16,6 +16,7 @@ namespace Soda
     struct AstTypeRef;
     struct AstCast;
     struct AstIfExpr;
+    struct AstFuncExpr;
     struct AstCallExpr;
     struct AstIndexExpr;
     struct AstMemberExpr;
@@ -69,6 +70,7 @@ namespace Soda
         virtual void visit(AstTypeRef &) = 0;
         virtual void visit(AstCast &) = 0;
         virtual void visit(AstIfExpr &) = 0;
+        virtual void visit(AstFuncExpr &) = 0;
         virtual void visit(AstCallExpr &) = 0;
         virtual void visit(AstIndexExpr &) = 0;
         virtual void visit(AstMemberExpr &) = 0;
@@ -122,6 +124,7 @@ namespace Soda
         virtual void visit(AstTypeRef &n) override;
         virtual void visit(AstCast &n) override;
         virtual void visit(AstIfExpr &n) override;
+        virtual void visit(AstFuncExpr &n) override;
         virtual void visit(AstCallExpr &n) override;
         virtual void visit(AstIndexExpr &n) override;
         virtual void visit(AstMemberExpr &n) override;

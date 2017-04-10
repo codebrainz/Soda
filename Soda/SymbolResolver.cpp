@@ -25,6 +25,13 @@ namespace Soda
             // TODO: lookup name/type members like Foo.Bar.x
         }
 
+        virtual void visit(AstFuncExpr &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
         virtual void visit(AstBlockStmt &n) override final
         {
             openScope(n);
