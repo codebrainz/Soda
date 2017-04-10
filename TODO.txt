@@ -1,8 +1,9 @@
 - Add function literals/expressions/lambdas
 - Get rid of nil
-- Add try/catch/finally
 - Allow function and delegate parameters with no name
   - Then add warning for unused parameters
 - Implement semantic analysis (see notes in Sema.cpp)
 - Work on type representation
 - Implement type checking and inference
+- Remove nullptr default argument value on AST node start/end tokens
+  in constructors.

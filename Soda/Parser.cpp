@@ -1155,6 +1155,93 @@ namespace Soda
                 std::move(expr), std::move(stmt), startToken, endToken);
         }
 
+        //> catch_parameter: type_ref IDENT
+        //>                ;
+        AstDeclPtr parseCatchParameter()
+        {
+            auto startToken = currentToken();
+            auto typeRef = parseTypeRef();
+            if (!typeRef)
+                return nullptr;
+            auto name = tokenText();
+            auto endToken = currentToken();
+            if (!expect(TK_IDENT))
+                return nullptr;
+            return std::make_unique< AstVarDecl >(std::move(name),
+                std::move(typeRef), nullptr, startToken, endToken);
+        }
+
+        //> catch_stmt: CATCH '(' catch_parameter ')' stmt
+        //>           | CATCH '(' ELLIPSE ')' stmt
+        //>           ;
+        AstCatchPtr parseCatchStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_CATCH))
+                return nullptr;
+            if (!expect('('))
+                return nullptr;
+            AstDeclPtr exc;
+            if (!accept(TK_ELLIPSIS))
+                exc = parseCatchParameter();
+            if (!expect(')'))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstCatchStmt >(
+                std::move(exc), std::move(stmt), startToken, endToken);
+        }
+
+        //> finally_stmt: FINALLY stmt
+        //>             ;
+        AstFinallyPtr parseFinallyStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_FINALLY))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            return std::make_unique< AstFinallyStmt >(
+                std::move(stmt), startToken, endToken);
+        }
+
+        //> try_stmt: TRY stmt catch_stmt* finally_stmt?
+        //>         ;
+        AstStmtPtr parseTryStmt()
+        {
+            auto startToken = currentToken();
+            if (!expect(TK_TRY))
+                return nullptr;
+            auto stmt = parseLocalStmt();
+            if (!stmt)
+                return nullptr;
+            auto endToken = stmt->end;
+            AstCatchList catches;
+            while (true) {
+                if (currentToken()->kind == TK_CATCH) {
+                    if (auto c = parseCatchStmt())
+                        catches.push_back(std::move(c));
+                    else
+                        break;
+                } else {
+                    break;
+                }
+            }
+            AstFinallyPtr fin;
+            if (currentToken()->kind == TK_FINALLY)
+                fin = parseFinallyStmt();
+            if (fin)
+                endToken = fin->end;
+            else if (!catches.empty())
+                endToken = catches.back()->end;
+            return std::make_unique< AstTryStmt >(std::move(stmt),
+                std::move(catches), std::move(fin), startToken, endToken);
+        }
+
         //> local_stmt: empty_stmt
         //>           | block_stmt
         //>           | return_stmt
@@ -1166,6 +1253,7 @@ namespace Soda
         //>           | for_stmt
         //>           | do_stmt
         //>           | while_stmt
+        //>           | try_stmt
         //>           | label_decl
         //>           | decl
         //>           | expr_stmt
@@ -1195,6 +1283,8 @@ namespace Soda
                 return parseDoStmt();
             else if (kind == TK_WHILE)
                 return parseWhileStmt();
+            else if (kind == TK_TRY)
+                return parseTryStmt();
             else if (kind == TK_IDENT && peekToken().kind == ':')
                 return parseLabelDecl();
             else if (auto decl = parseDecl())

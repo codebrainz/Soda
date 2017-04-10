@@ -237,6 +237,18 @@ namespace Soda
         {
             handleNode(n);
         }
+        virtual void visit(AstCatchStmt &n) override final
+        {
+            handleNode(n);
+        }
+        virtual void visit(AstFinallyStmt &n) override final
+        {
+            handleNode(n);
+        }
+        virtual void visit(AstTryStmt &n) override final
+        {
+            handleNode(n);
+        }
         virtual void visit(AstLabelDecl &n) override final
         {
             handleNamedNode(n);
@@ -433,6 +445,18 @@ namespace Soda
             handleEdge(n);
         }
         virtual void visit(AstWhileStmt &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstCatchStmt &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstFinallyStmt &n) override final
+        {
+            handleEdge(n);
+        }
+        virtual void visit(AstTryStmt &n) override final
         {
             handleEdge(n);
         }

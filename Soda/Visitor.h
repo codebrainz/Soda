@@ -32,6 +32,9 @@ namespace Soda
     struct AstForStmt;
     struct AstDoStmt;
     struct AstWhileStmt;
+    struct AstCatchStmt;
+    struct AstFinallyStmt;
+    struct AstTryStmt;
     struct AstBoolAttribute;
     struct AstIntAttribute;
     struct AstFloatAttribute;
@@ -82,6 +85,9 @@ namespace Soda
         virtual void visit(AstForStmt &) = 0;
         virtual void visit(AstDoStmt &) = 0;
         virtual void visit(AstWhileStmt &) = 0;
+        virtual void visit(AstCatchStmt &) = 0;
+        virtual void visit(AstFinallyStmt &) = 0;
+        virtual void visit(AstTryStmt &) = 0;
         virtual void visit(AstBoolAttribute &n) = 0;
         virtual void visit(AstIntAttribute &n) = 0;
         virtual void visit(AstFloatAttribute &n) = 0;
@@ -132,6 +138,9 @@ namespace Soda
         virtual void visit(AstForStmt &n) override;
         virtual void visit(AstDoStmt &n) override;
         virtual void visit(AstWhileStmt &n) override;
+        virtual void visit(AstCatchStmt &n) override;
+        virtual void visit(AstFinallyStmt &n) override;
+        virtual void visit(AstTryStmt &n) override;
         virtual void visit(AstBoolAttribute &n) override;
         virtual void visit(AstIntAttribute &n) override;
         virtual void visit(AstFloatAttribute &n) override;

@@ -58,6 +58,13 @@ namespace Soda
             closeScope(n);
         }
 
+        virtual void visit(AstCatchStmt &n) override final
+        {
+            openScope(n);
+            n.acceptChildren(*this);
+            closeScope(n);
+        }
+
         virtual void visit(AstUsingDecl &) override final
         {
             // todo: import symbols from referred namespace into current scope

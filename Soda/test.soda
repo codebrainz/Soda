@@ -1,20 +1,11 @@
-
-struct Foo {
-    int aMember;
-    float bMember;
-    Foo(int a) {
-        aMember = a;
-    }
-    Foo(float b) {
-        bMember = b;
-    }
-    ~Foo() {
-    }
-}
-
 int main()
 {
-    Foo fa = Foo(1);
-    Foo fb = Foo(1.0);
-    return 0;
+    int value;
+    try {
+        value = 1 + 2.0;
+    } catch (int e) {
+        value = 1 + e;
+    } finally {
+        return value;
+    }
 }

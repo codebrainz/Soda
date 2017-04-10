@@ -29,11 +29,12 @@ namespace Soda
             return (chr = sourceFile[offset++]);
         }
 
-        int peekChar()
+        int peekChar(size_t n = 1)
         {
-            if (offset >= fileSize)
+            size_t off = offset + (n - 1);
+            if (off >= fileSize)
                 return EOF;
-            return sourceFile[offset];
+            return sourceFile[off];
         }
 
         bool isSpace() const
@@ -110,7 +111,9 @@ namespace Soda
                 { "return", TK_RETURN }, { "for", TK_FOR }, { "do", TK_DO },
                 { "while", TK_WHILE }, { "struct", TK_STRUCT },
                 { "enum", TK_ENUM }, { "namespace", TK_NAMESPACE },
-                { "using", TK_USING }, { "delegate", TK_DELEGATE } };
+                { "using", TK_USING }, { "delegate", TK_DELEGATE },
+                { "try", TK_TRY }, { "catch", TK_CATCH },
+                { "finally", TK_FINALLY } };
         auto len = token.end - token.start;
         for (auto &kwd : kwds) {
             if (kwd.first.length() != len)
@@ -215,6 +218,14 @@ namespace Soda
                 token.kind = TK_CHAR;
             return token.kind;
         } else if (isDigit() || chr == '.') {
+            // ...
+            if (chr == '.' && peekChar(1) == '.' && peekChar(2) == '.') {
+                nextChar(); // skip 2nd dot
+                nextChar(); // skip 3rd dot
+                token.end = offset;
+                token.kind = TK_ELLIPSIS;
+                return token.kind;
+            }
             if (chr == '0') {
                 nextChar();
                 switch (peekChar()) {
@@ -528,6 +539,14 @@ namespace Soda
             return "USING_KWD";
         case TK_DELEGATE:
             return "DELEGATE_KWD";
+        case TK_TRY:
+            return "TRY_KWD";
+        case TK_CATCH:
+            return "CATCH_KWD";
+        case TK_FINALLY:
+            return "FINALLY_KWD";
+        case TK_ELLIPSIS:
+            return "ELLIPSIS";
         case TK_BOOL_ATTR:
             return "BOOL_ATTR";
         case TK_INT_ATTR:

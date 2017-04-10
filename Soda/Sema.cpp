@@ -16,6 +16,7 @@ namespace Soda
     };
 
     // cases only in switches
+    // only single default in switches
     // break only in cases or loops
     // continue only in loops
     // gotos are local
@@ -24,6 +25,7 @@ namespace Soda
     // if/loop conditions are compatible with boolean
     // only one destructor per struct
     // validate attributes
+    // ensure only one ellipsis catch per try
 
     bool analyzeSemantics(Compiler &compiler, AstNode &node)
     {

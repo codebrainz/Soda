@@ -57,6 +57,11 @@ namespace Soda
         TK_NAMESPACE,
         TK_USING,
         TK_DELEGATE,
+        TK_TRY,
+        TK_CATCH,
+        TK_FINALLY,
+
+        TK_ELLIPSIS,
 
         TK_BOOL_ATTR,
         TK_INT_ATTR,

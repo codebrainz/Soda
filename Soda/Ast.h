@@ -45,6 +45,9 @@ namespace Soda
         NK_FOR_STMT,
         NK_DO_STMT,
         NK_WHILE_STMT,
+        NK_CATCH_STMT,
+        NK_FINALLY_STMT,
+        NK_TRY_STMT,
         NK_ATTR_BOOL,
         NK_ATTR_INT,
         NK_ATTR_FLOAT,
@@ -666,6 +669,76 @@ namespace Soda
             stmt->accept(v);
         }
         AST_VISITABLE(WhileStmt)
+    };
+
+    struct AstCatchStmt final : public AstStmt
+    {
+        SymbolTable scope;
+        AstDeclPtr exc;
+        AstStmtPtr stmt;
+        AstCatchStmt(AstDeclPtr exc, AstStmtPtr stmt, Token *start = nullptr,
+            Token *end = nullptr)
+            : AstStmt(NK_CATCH_STMT, start, end)
+            , exc(std::move(exc))
+            , stmt(std::move(stmt))
+        {
+        }
+        bool isCatchAll() const
+        {
+            return exc ? false : true;
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            if (exc)
+                exc->accept(v);
+            stmt->accept(v);
+        }
+        AST_VISITABLE(CatchStmt)
+    };
+
+    typedef NodePtrType< AstCatchStmt > AstCatchPtr;
+    typedef std::vector< AstCatchPtr > AstCatchList;
+
+    struct AstFinallyStmt final : public AstStmt
+    {
+        AstStmtPtr stmt;
+        AstFinallyStmt(
+            AstStmtPtr stmt, Token *start = nullptr, Token *end = nullptr)
+            : AstStmt(NK_FINALLY_STMT, start, end)
+            , stmt(std::move(stmt))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            stmt->accept(v);
+        }
+        AST_VISITABLE(FinallyStmt)
+    };
+
+    typedef NodePtrType< AstFinallyStmt > AstFinallyPtr;
+
+    struct AstTryStmt final : public AstStmt
+    {
+        AstStmtPtr stmt;
+        AstCatchList catchStmts;
+        AstFinallyPtr finallyStmt;
+        AstTryStmt(AstStmtPtr stmt, AstCatchList catchStmts, AstFinallyPtr fin,
+            Token *start = nullptr, Token *end = nullptr)
+            : AstStmt(NK_TRY_STMT, start, end)
+            , stmt(std::move(stmt))
+            , catchStmts(std::move(catchStmts))
+            , finallyStmt(std::move(fin))
+        {
+        }
+        virtual void acceptChildren(AstVisitor &v) override final
+        {
+            stmt->accept(v);
+            for (auto &c : catchStmts)
+                c->accept(v);
+            if (finallyStmt)
+                finallyStmt->accept(v);
+        }
+        AST_VISITABLE(TryStmt)
     };
 
     struct AstBoolAttribute final : public AstAttribute
