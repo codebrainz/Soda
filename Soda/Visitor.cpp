@@ -4,10 +4,6 @@
 namespace Soda
 {
 
-    void AstDefaultVisitor::visit(AstAmbiguityStmt &n)
-    {
-        n.acceptChildren(*this);
-    }
     void AstDefaultVisitor::visit(AstNil &n)
     {
         n.acceptChildren(*this);

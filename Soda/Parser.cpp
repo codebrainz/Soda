@@ -858,18 +858,17 @@ namespace Soda
             auto startToken = currentToken();
             if (!expect(TK_RETURN))
                 return nullptr;
+            AstExprPtr returnExpr;
             auto endToken = currentToken();
             if (!accept(';')) {
-                auto expr = parseExpr();
-                assert(expr);
-                endToken = expr->end;
+                returnExpr = parseExpr();
+                assert(returnExpr);
+                endToken = returnExpr->end;
                 if (!expect(';'))
                     return nullptr;
-                return std::make_unique< AstReturnStmt >(
-                    std::move(expr), startToken, endToken);
-            } else {
-                return std::make_unique< AstReturnStmt >(startToken, endToken);
             }
+            return std::make_unique< AstReturnStmt >(
+                std::move(returnExpr), startToken, endToken);
         }
 
         //> break_stmt: BREAK ';'
@@ -1604,8 +1603,8 @@ namespace Soda
                         return nullptr;
                 }
             }
-            return std::make_unique< AstStructDecl >(
-                std::move(name), std::move(members), startToken, endToken);
+            return std::make_unique< AstStructDecl >(std::move(name),
+                AstTypeRefList(), std::move(members), startToken, endToken);
         }
 
         //> enumerator: IDENT
@@ -1662,8 +1661,8 @@ namespace Soda
                         return nullptr;
                 }
             }
-            return std::make_unique< AstEnumDecl >(
-                std::move(name), std::move(enumerators), startToken, endToken);
+            return std::make_unique< AstEnumDecl >(std::move(name),
+                std::move(enumerators), AstDeclList(), startToken, endToken);
         }
 
         //> namespace: NAMESPACE dotted_name ';'

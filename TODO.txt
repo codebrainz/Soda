@@ -1,3 +1,7 @@
-- Remove unused constructors in AST nodes
 - Combine AstEmptyStmt and AstEmptyDecl
+- Parse delegates
+- Make NameMangler.cpp visit functions override final
+- Add function literals/expressions/lambdas
+- Get rid of nil
+- Get rid of Symbol class
 - Work on type representation
