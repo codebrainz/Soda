@@ -1,9 +1,14 @@
+AM_CXXFLAGS = $(LLVM_CFLAGS)
+AM_LDFLAGS = $(LLVM_LIBS)
+
 bin_PROGRAMS = sodac
 
 sodac_SOURCES = \
 	Ast.h \
+	CodeGen.cpp CodeGen.h \
 	Compiler.cpp Compiler.h \
 	DotGenerator.cpp DotGenerator.h \
+	LLVM.h \
 	Logger.h \
 	Main.cpp \
 	Operators.cpp Operators.h \

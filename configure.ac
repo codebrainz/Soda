@@ -5,5 +5,6 @@ AC_CONFIG_HEADERS([Soda/Config.h])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_SILENT_RULES([yes])
 AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
+AX_CHECK_LLVM([all])
 AC_CONFIG_FILES([Makefile Soda/Makefile])
 AC_OUTPUT

@@ -16,7 +16,8 @@ SOURCES += \
     Soda/Operators.cpp \
     Soda/Sema.cpp \
     Soda/Symbol.cpp \
-    Soda/Compiler.cpp
+    Soda/Compiler.cpp \
+    Soda/CodeGen.cpp
 
 HEADERS += \
     Soda/Ast.h \
@@ -35,4 +36,9 @@ HEADERS += \
     Soda/Visitor.h \
     Soda/Operators.h \
     Soda/Sema.h \
-    Soda/Symbol.h
+    Soda/Symbol.h \
+    Soda/LLVM.h \
+    Soda/CodeGen.h
+
+QMAKE_CXXFLAGS += `llvm-config-3.8 --cflags`
+QMAKE_LFLAGS += `llvm-config-3.8 --ldflags --libs`

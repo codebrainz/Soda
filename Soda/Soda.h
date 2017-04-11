@@ -1,5 +1,7 @@
 #pragma once
 
+#define SODA_INSIDE_SODA_H
+
 #include "Ast.h"
 #include "Compiler.h"
 #include "DotGenerator.h"
@@ -15,3 +17,5 @@
 #include "SymbolTable.h"
 #include "Tokenizer.h"
 #include "Visitor.h"
+
+#undef SODA_INSIDE_SODA_H
