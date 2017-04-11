@@ -14,6 +14,7 @@ sodac_SOURCES = \
 	Operators.cpp Operators.h \
 	Options.cpp Options.h \
 	Parser.cpp Parser.h \
+	Platform.h \
 	ScopeBuilder.cpp ScopeBuilder.h \
 	ScopeVisitor.h \
 	Sema.cpp Sema.h \

@@ -3,14 +3,14 @@
 #endif
 
 #include "SourceFile.h"
+#include "Platform.h"
 #include <cassert>
 #include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 
-#ifdef _WIN32
-#define SODA_WIN32
+#ifdef SODA_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #else
