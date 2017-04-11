@@ -14,6 +14,13 @@ AC_DEFUN([AX_CHECK_LLVM], [
     AC_CHECK_TOOL([LLVM_CONFIG], [$llvm_config_tool], [
         AC_MSG_ERROR([unable to locate $llvm_config_tool utility])
     ])
-    LLVM_CFLAGS=`$LLVM_CONFIG --cxxflags`
-    LLVM_LIBS=`$LLVM_CONFIG --ldflags --libs $llvm_components`
+dnl LLVM_CFLAGS=`$LLVM_CONFIG --cxxflags`
+    LLVM_CFLAGS=`$LLVM_CONFIG --cppflags`
+    LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
+    LLVM_LIBS=`$LLVM_CONFIG --libs $llvm_components`
+    LLVM_SYSTEM_LIBS=`$LLVM_CONFIG --system-libs`
+    AC_SUBST(LLVM_CFLAGS)
+    AC_SUBST(LLVM_LDFLAGS)
+    AC_SUBST(LLVM_LIBS)
+    AC_SUBST(LLVM_SYSTEM_LIBS)
 ])

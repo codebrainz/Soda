@@ -3,9 +3,20 @@
 #endif
 
 #include "Compiler.h"
+#include "LLVM.h"
 
 namespace Soda
 {
+
+    Compiler::Compiler()
+        : llvmContext(new llvm::LLVMContext())
+    {
+    }
+
+    Compiler::~Compiler()
+    {
+        delete llvmContext;
+    }
 
     void Compiler::addFile(const std::string &fn)
     {

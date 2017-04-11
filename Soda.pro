@@ -42,4 +42,5 @@ HEADERS += \
     Soda/Platform.h
 
 QMAKE_CXXFLAGS += `llvm-config-3.8 --cflags`
-QMAKE_LFLAGS += `llvm-config-3.8 --ldflags --libs`
+QMAKE_LFLAGS += `llvm-config-3.8 --ldflags`
+LIBS += `llvm-config-3.8 --system-libs --libs all`

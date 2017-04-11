@@ -1,7 +1,7 @@
-AM_CXXFLAGS = $(LLVM_CFLAGS)
-AM_LDFLAGS = $(LLVM_LIBS)
-
 bin_PROGRAMS = sodac
+
+sodac_CXXFLAGS = $(LLVM_CFLAGS)
+sodac_LDADD = $(LLVM_LDFLAGS) $(LLVM_LIBS) $(LLVM_SYSTEM_LIBS)
 
 sodac_SOURCES = \
 	Ast.h \

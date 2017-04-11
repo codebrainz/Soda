@@ -12,12 +12,19 @@
 #include <iostream>
 #include <vector>
 
+namespace llvm
+{
+    class LLVMContext;
+}
+
 namespace Soda
 {
 
     class Compiler
     {
     public:
+        Compiler();
+        ~Compiler();
         void addFile(const std::string &fn);
         bool parse();
         unsigned int analyze();
@@ -88,6 +95,7 @@ namespace Soda
         TokenList tokens;
         SourceFileList sourceFiles;
         Logger logger;
+        llvm::LLVMContext *llvmContext;
     };
 
 } // namespace Soda
