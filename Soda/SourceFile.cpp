@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "Config.h"
+#endif
+
 #include "SourceFile.h"
 #include <cassert>
 #include <cerrno>

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "Config.h"
+#endif
+
 #include "Sema.h"
 #include "Ast.h"
 #include "Compiler.h"

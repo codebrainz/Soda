@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "Config.h"
+#endif
+
 #include "Ast.h"
 #include "DotGenerator.h"
 #include "Operators.h"

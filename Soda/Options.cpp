@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "Config.h"
+#endif
+
 #include "Options.h"
 #include <cassert>
 #include <cstdlib>
