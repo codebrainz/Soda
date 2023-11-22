@@ -1,8 +1,0 @@
-- Get rid of nil
-- Allow function and delegate parameters with no name
-  - Then add warning for unused parameters
-- Implement semantic analysis (see notes in Sema.cpp)
-- Work on type representation
-- Implement type checking and inference
-- Fix compilation model WRT global scope and modules
-- Implement macro functions

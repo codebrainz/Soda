@@ -1,8 +1,0 @@
-int main()
-{
-    const auto x = 42;
-    auto adder = (auto a, auto b) {
-        return a + b + x;
-    };
-    return adder(1,2);
-}
